@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  // Las pruebas no van al dist que usa la API en producción
+  "exclude": ["src/**/*.test.ts"]
+}

@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+coverage
+pnpm-lock.yaml
+
+# Documentos formales (acta, ADRs): se editan a mano, no se reformatean
+docs

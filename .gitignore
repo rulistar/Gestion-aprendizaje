@@ -1,0 +1,30 @@
+# Dependencias
+node_modules/
+
+# Builds y artefactos
+dist/
+build/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Variables de entorno (NUNCA subir secretos)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Material de referencia local que no forma parte del proyecto (prototipos, prompts)
+docs/FueraDelProyecto/
+

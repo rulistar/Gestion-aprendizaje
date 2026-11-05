@@ -1,0 +1,108 @@
+# CLAUDE.md — Gestor de Aprendizaje
+
+Contexto para sesiones de Claude Code. Leer antes de trabajar en el repo.
+
+## Proyecto
+
+Aplicación web para planear y dar seguimiento a lo que se quiere aprender (cursos, lecturas u otros temas): elementos con una estructura de hasta 3 niveles (capítulos, cursos, actividades) y su avance. Generaliza el prototipo "Gestor de cursos". Crece por **módulos**.
+
+- **Ecosistema de tres apps separadas e integradas** (cada una con su repo, BD y despliegue, dueña de sus datos):
+  - **Gestor de Proyectos** (`D:\Pr-IA\Gestion-Proyectos`, en producción): recibe de esta app el avance, las fechas y el estado (sincronizados).
+  - **Gestor de Aprendizaje** (este repo).
+  - **Lexika** (futuro): idiomas; se integra con esta app.
+- **Mantener la compatibilidad con Gestor de Proyectos**: mismas convenciones (UUID v7, trazabilidad, borrado lógico, fechas `AAAA-MM-DD`, estados) y mismo stack. Ante la duda, revisar su `CLAUDE.md` y sus ADRs, y reutilizar su código probado (sesiones, invitaciones, seguridad).
+- Documentos de gobierno: [docs/00-acta-proyecto.md](docs/00-acta-proyecto.md) y [docs/adr/](docs/adr/).
+- Metodología: PMI + Scrum (sprints de 2 semanas). **Nada entra sin historia de usuario.**
+- El usuario está aprendiendo el stack: explicar el porqué de cada cambio, de forma breve.
+- Presupuesto de infraestructura: $0 (capas gratuitas; uso personal).
+- Backlog priorizado: [docs/backlog.md](docs/backlog.md) · Sprint actual: [docs/sprints/](docs/sprints/).
+- Flujo: el usuario es el Product Owner; una rama + un PR por elemento del backlog. Crea los PR a mano desde el enlace (sin `gh`).
+
+## Decisiones de producto (PO, 2026-11-05)
+
+Detalle en [docs/backlog.md](docs/backlog.md) y [ADR-0002](docs/adr/ADR-0002-elementos-de-aprendizaje.md).
+
+- Acceso como en Gestor de Proyectos: **registro solo por invitación**, espacios y **roles** (Admin, Miembro, Lector), sin la matriz por persona.
+- **Tipos de elemento** (Curso, Lectura, Otro…) con **etiquetas propias** por campo.
+- Plataforma, patrocinador, categoría, nivel y tipo de actividad: **catálogos editables**.
+- Horas totales = semanas × días por semana × horas por día, o capturadas a mano (manda lo capturado).
+- Fechas reales automáticas al cambiar el estado, y editables.
+- Árbol de hasta 3 niveles: Capítulo, Curso (misma ficha Zod que el elemento) o Actividad; en el nivel 3, solo actividades.
+
+## Stack (ADR-0001)
+
+El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`. Próximos (backlog): Prisma 7 + PostgreSQL 17 (TEC-01), `argon2` y `@fastify/cookie` (TEC-02), TanStack Router y Query, shadcn/ui (TEC-03), Playwright (TEC-05).
+
+**No agregar dependencias fuera del ADR sin preguntar al usuario.**
+
+### Restricciones de versión (no cambiar sin revisar)
+
+- **Vite 7, no 8**: el binario nativo de rolldown (Vite 8) lo bloquea _Smart App Control_ en la PC del usuario. `@vitejs/plugin-react` en v5. Dependabot ignora esos majors.
+- **TypeScript ~6.0**: typescript-eslint 8 exige `typescript <6.1`.
+- **`@types/node` en 24.x**, igual que `.nvmrc`. Subirlos juntos.
+- **pnpm bloquea scripts de instalación**; los permitidos están en `allowBuilds` de `pnpm-workspace.yaml` (hoy solo `esbuild`).
+
+## Puertos locales (distintos a los de Gestor de Proyectos)
+
+API **3001** · web **5174** (proxy de `/api` → 3001) · PostgreSQL **5433** (contenedor `aprendizaje-postgres`).
+
+## Estructura
+
+```
+apps/
+  web/                React + Vite. Proxy de /api → http://127.0.0.1:3001 en desarrollo
+  api/                Fastify — monolito modular
+    src/app.ts          buildApp(): crea la instancia sin abrir puerto (testeable con app.inject)
+    src/server.ts       arranque + cierre ordenado
+    src/config/env.ts   variables de entorno validadas con Zod
+    src/security.ts     helmet, CORS (CORS_ORIGINS), rate limit y HTTPS/HSTS en producción.
+                        Rutas sensibles: `config: { rateLimit: authRateLimit }`
+    src/modules/<mod>/  un módulo por funcionalidad: <mod>.routes.ts, <mod>.test.ts
+packages/
+  shared/             esquemas Zod + tipos (z.infer) usados por web y api
+docs/                 acta, ADRs, backlog, sprints (Prettier no los reformatea)
+.github/              CI (ci.yml) y Dependabot
+docker-compose.yml    PostgreSQL local
+```
+
+### Convenciones
+
+- Rutas de la API siempre bajo `/api/v1/...`. Cada módulo se registra en `app.ts` con `prefix: '/api/v1'`.
+- Un esquema Zod en `packages/shared` es la fuente de verdad del contrato; el tipo TS se deriva con `z.infer`.
+- `@aprendizaje/shared` se resuelve al **código fuente** en desarrollo, tests, typecheck y build de la web mediante la condición de export `@aprendizaje/source`. Solo `node dist/server.js` usa el `dist` compilado.
+- Imports relativos en api y shared con extensión `.js` (ESM `NodeNext`). En web no hace falta (`Bundler`).
+- Imports de solo tipos: `import type`.
+- Pruebas junto al código: `*.test.ts`. Probar endpoints con `buildApp().inject()`, sin red. Las reglas de negocio puras van en `packages/shared` con sus pruebas.
+
+## Comandos (desde la raíz)
+
+```bash
+pnpm install           # instala todo (también activa los hooks de Husky)
+pnpm db:up             # levanta PostgreSQL (requiere .env)
+pnpm db:down           # detiene PostgreSQL
+pnpm dev               # api (:3001) + web (:5174) en paralelo
+pnpm test              # Vitest en todos los paquetes
+pnpm lint              # ESLint   | pnpm lint:fix
+pnpm format            # Prettier | pnpm format:check
+pnpm typecheck         # tsc --noEmit en todos los paquetes
+pnpm build             # compila shared → api → web
+```
+
+Antes de dar una tarea por terminada: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test`.
+
+## Reglas de seguridad (obligatorias)
+
+1. **Secretos solo en `.env`** (ignorado por Git). Nunca en código, tests, docs ni commits. Toda variable nueva va a `.env.example` con un valor ficticio y a `apps/api/src/config/env.ts` validada con Zod.
+2. **Validar toda entrada externa con Zod** (body, query, params, headers, archivos importados, webhooks).
+3. **Acceso a datos solo con Prisma** (consultas parametrizadas). Nada de SQL concatenado.
+4. **Autorización por rol en el backend, en cada endpoint.** Ocultar botones en la web no es seguridad.
+5. **Autenticación**: sesiones en cookie `HttpOnly` + `Secure` + `SameSite`; contraseñas con Argon2. Nunca tokens en `localStorage`.
+6. Al exponer la API: helmet, CORS restringido, rate limiting.
+7. No registrar en logs contraseñas, tokens, cookies ni datos personales.
+8. `main` protegida: todo cambio entra por Pull Request con CI en verde.
+9. No desactivar hooks (`--no-verify`) ni reglas de lint/TS para "hacer pasar" algo; corregir la causa.
+10. Revisar qué hace una dependencia nueva antes de proponerla.
+
+## Definición de Terminado (del acta)
+
+En `main` vía PR · pruebas y linter en verde · escaneo de seguridad sin problemas altos · documentado · funciona en el entorno desplegado.

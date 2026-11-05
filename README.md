@@ -1,0 +1,32 @@
+# Gestor de Aprendizaje
+
+Aplicación web para planear y dar seguimiento a cursos, lecturas y otros temas de aprendizaje. Se integra con Gestor de Proyectos y, más adelante, con Lexika.
+
+## Requisitos
+
+- Node 24 (`.nvmrc`) y pnpm 12
+- Docker Desktop (para PostgreSQL, a partir de TEC-01)
+- Git
+
+## Primeros pasos
+
+```bash
+cp .env.example .env   # y cambia los valores de ejemplo
+pnpm install
+pnpm dev               # API en http://127.0.0.1:3001, web en http://localhost:5174
+```
+
+Abre http://localhost:5174: debe decir "Estado de la API: conectada".
+
+## Verificar antes de un commit
+
+```bash
+pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+## Documentación
+
+- [Acta del proyecto](docs/00-acta-proyecto.md)
+- [Decisiones de arquitectura](docs/adr/)
+- [Backlog](docs/backlog.md) y [sprints](docs/sprints/)
+- [CLAUDE.md](CLAUDE.md): contexto y reglas del repo

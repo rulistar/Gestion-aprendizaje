@@ -1,0 +1,27 @@
+# Dependabot (ADR-0001, sección Seguridad): PRs semanales con actualizaciones de dependencias
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Vite 8 (rolldown) es bloqueado por Smart App Control en Windows; ver CLAUDE.md
+      - dependency-name: vite
+        update-types: [version-update:semver-major]
+      - dependency-name: '@vitejs/plugin-react'
+        update-types: [version-update:semver-major]
+      # Los tipos deben coincidir con la versión de Node que ejecuta el código (Node 24, ver .nvmrc)
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
+      # typescript-eslint aún no soporta TypeScript >= 6.1
+      - dependency-name: typescript
+        update-types: [version-update:semver-major, version-update:semver-minor]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -1,0 +1,6 @@
+packages:
+  - apps/*
+  - packages/*
+# pnpm bloquea los scripts de instalación; solo se autorizan los necesarios (esbuild lo usa tsx)
+allowBuilds:
+  esbuild: true
