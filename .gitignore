@@ -28,3 +28,6 @@ Thumbs.db
 # Material de referencia local que no forma parte del proyecto (prototipos, prompts)
 docs/FueraDelProyecto/
 
+
+# Cliente de Prisma generado (se regenera con pnpm install / db:generate)
+apps/api/src/generated/

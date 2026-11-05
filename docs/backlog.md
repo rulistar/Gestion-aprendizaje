@@ -1,7 +1,7 @@
 # Product Backlog
 
 > Lista priorizada de todo lo que el producto debe hacer. La ordena el **Product Owner**. Nada entra al desarrollo sin estar aquí.
-> Última actualización: 2026-11-05 (Sprint 0).
+> Última actualización: 2026-11-05 (Sprint 1).
 
 ## Cómo leer este documento
 
@@ -59,4 +59,3 @@
 - ¿El elemento lleva **prioridad** (Alta, Media, Baja) como en el prototipo?
 - Lista inicial de **tipos de actividad** (propuesta: la del prototipo).
 - Etiquetas por omisión de **Lectura** (por ejemplo, ¿páginas en vez de semanas?).
-- Nombre del repo en GitHub.

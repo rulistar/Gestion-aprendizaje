@@ -8,7 +8,13 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  globalIgnores(['**/node_modules/', '**/dist/', '**/build/', '**/coverage/']),
+  globalIgnores([
+    '**/node_modules/',
+    '**/dist/',
+    '**/build/',
+    '**/coverage/',
+    'apps/api/src/generated/',
+  ]),
 
   // Base: reglas recomendadas de JS + TypeScript con información de tipos
   js.configs.recommended,

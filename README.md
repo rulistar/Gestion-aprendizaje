@@ -5,7 +5,7 @@ Aplicación web para planear y dar seguimiento a cursos, lecturas y otros temas 
 ## Requisitos
 
 - Node 24 (`.nvmrc`) y pnpm 12
-- Docker Desktop (para PostgreSQL, a partir de TEC-01)
+- Docker Desktop (para PostgreSQL)
 - Git
 
 ## Primeros pasos
@@ -13,6 +13,8 @@ Aplicación web para planear y dar seguimiento a cursos, lecturas y otros temas 
 ```bash
 cp .env.example .env   # y cambia los valores de ejemplo
 pnpm install
+pnpm db:up             # enciende PostgreSQL
+pnpm db:migrate        # aplica las migraciones
 pnpm dev               # API en http://127.0.0.1:3001, web en http://localhost:5174
 ```
 
