@@ -6,6 +6,7 @@ import type {
 } from '@aprendizaje/shared';
 import type { Db } from '../../db/client.js';
 import { auditCreate, auditSoftDelete, auditUpdate, notDeleted } from '../../db/audit.js';
+import { seedCatalogs } from '../catalogs/catalogs.service.js';
 
 /**
  * Workspaces que el usuario puede abrir (sin los que están en la papelera): aquellos de los que
@@ -142,6 +143,7 @@ export async function createWorkspace(
     const membership = await tx.membership.create({
       data: { workspaceId: workspace.id, userId: actorId, role: 'ADMIN', ...auditCreate(actorId) },
     });
+    await seedCatalogs(tx, workspace.id, actorId);
     return { id: workspace.id, name: workspace.name, role: membership.role };
   });
 }

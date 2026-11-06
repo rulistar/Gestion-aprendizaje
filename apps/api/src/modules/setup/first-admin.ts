@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Db } from '../../db/client.js';
 import { auditCreate } from '../../db/audit.js';
 import { hashPassword } from '../auth/password.js';
+import { seedCatalogs } from '../catalogs/catalogs.service.js';
 
 /** Nombre del workspace que se crea junto con el primer Admin; después se puede renombrar */
 export const FIRST_WORKSPACE_NAME = 'Mi aprendizaje';
@@ -59,6 +60,7 @@ export async function createFirstAdmin(db: Db, input: FirstAdminInput) {
         ...auditCreate(user.id),
       },
     });
+    await seedCatalogs(tx, workspace.id, user.id);
 
     return { user, workspace };
   });

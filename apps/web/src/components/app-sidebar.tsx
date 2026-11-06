@@ -1,4 +1,3 @@
-import { roleHasPermission } from '@aprendizaje/shared';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { BookOpen, Library, type LucideIcon } from 'lucide-react';
 import type { ChangeEvent } from 'react';
@@ -82,10 +81,16 @@ export function AppSidebar() {
       {current && (
         <div className="grid gap-0.5">
           <SoonItem icon={BookOpen} label="Elementos" story="HU-05" />
-          {/* Lo verifica también la API: ocultarlo aquí no es la seguridad */}
-          {roleHasPermission(current.role, 'catalog.manage') && (
-            <SoonItem icon={Library} label="Catálogos" story="HU-01" />
-          )}
+          {/* Los ve todo miembro; solo el Admin los cambia (lo verifica la API) */}
+          <Link
+            to="/w/$workspaceId/catalogos"
+            params={{ workspaceId: current.id }}
+            className="flex min-h-8 items-center gap-2.5 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-muted [&_svg]:size-[18px] [&_svg]:shrink-0"
+            activeProps={{ className: 'bg-accent text-accent-foreground', 'aria-current': 'page' }}
+          >
+            <Library aria-hidden />
+            Catálogos
+          </Link>
         </div>
       )}
     </nav>

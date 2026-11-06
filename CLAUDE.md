@@ -51,7 +51,7 @@ API **3001** · web **5174** (proxy de `/api` → 3001) · PostgreSQL **5433** (
 ```
 apps/
   web/                React + Vite. Proxy de /api → http://127.0.0.1:3001 en desarrollo
-    src/router.tsx      rutas en código (TanStack Router): /login pública; la ruta "app" protege a sus hijas (/, /w/$workspaceId).
+    src/router.tsx      rutas en código (TanStack Router): /login pública; la ruta "app" protege a sus hijas (/, /w/$workspaceId, /w/$workspaceId/catalogos).
                         getRouteApi usa el id: "/app/w/..."
     src/lib/api.ts      apiFetch(): llamadas a /api/v1 validadas con esquemas de shared; errores → ApiError
     src/lib/auth.ts     meQueryOptions (GET /auth/me), useCurrentUser, useLogin, useLogout
@@ -75,6 +75,8 @@ apps/
                           access.ts: requireMembership / requirePermission (rol); request.membership = mi acceso
       invitations/        GET/POST/DELETE /workspaces/:id/invitations, solo Admin; el token se devuelve una vez.
                           accept.*: públicas, POST /invitations/preview|register|accept
+      catalogs/           GET /workspaces/:id/catalogs (miembros), POST y PATCH /:itemId (catalog.manage): renombrar y
+                          archivar, nunca borrar; seedCatalogs carga los valores iniciales al crear un espacio
       setup/              createFirstAdmin: primer Admin + su workspace
     src/cli/            setup-admin.ts → pnpm setup:admin; prompt.ts = pedir una contraseña sin mostrarla
     src/db/client.ts    createDb(): PrismaClient con el adaptador pg; se inyecta en buildApp({ db }) → app.db
@@ -86,6 +88,7 @@ apps/
 packages/
   shared/             esquemas Zod + tipos (z.infer) usados por web y api
     src/schemas/permissions.ts  catálogo de permisos por rol (roleHasPermission)
+    src/schemas/catalogs.ts     los cinco catálogos: tipos, etiquetas y valores iniciales
 docs/                 acta, ADRs, backlog, sprints (Prettier no los reformatea)
 .github/              CI (ci.yml) y Dependabot
 docker-compose.yml    PostgreSQL local
