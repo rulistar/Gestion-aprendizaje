@@ -1,12 +1,15 @@
 import { healthResponseSchema } from '@aprendizaje/shared';
 import { afterAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../../app.js';
+import { createTestDb } from '../../test/test-db.js';
 
 describe('GET /api/v1/health', () => {
-  const app = buildApp();
+  const db = createTestDb();
+  const app = buildApp({ db });
 
   afterAll(async () => {
     await app.close();
+    await db.$disconnect();
   });
 
   it('responde 200 con un cuerpo que cumple el esquema compartido', async () => {

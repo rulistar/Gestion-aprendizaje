@@ -17,6 +17,25 @@ jobs:
   quality:
     name: Lint, tipos y pruebas
     runs-on: ubuntu-latest
+    # PostgreSQL temporal para las pruebas de integración (se destruye al terminar el job).
+    # Credenciales de un solo uso, sin valor fuera de este contenedor efímero.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: aprendizaje
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d aprendizaje"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Las pruebas usan aprendizaje_test (sufijo _test), que crean y migran solas
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/aprendizaje
     steps:
       - uses: actions/checkout@v7
 

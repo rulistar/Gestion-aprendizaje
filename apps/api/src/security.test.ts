@@ -1,15 +1,18 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
 import { authRateLimit, type SecurityOptions } from './security.js';
+import { createTestDb } from './test/test-db.js';
 
+const db = createTestDb();
 const apps: ReturnType<typeof buildApp>[] = [];
 
 afterAll(async () => {
   await Promise.all(apps.map((app) => app.close()));
+  await db.$disconnect();
 });
 
 function makeApp(security: SecurityOptions = {}, trustProxy = false) {
-  const app = buildApp({ security, trustProxy });
+  const app = buildApp({ db, security, trustProxy });
   apps.push(app);
   return app;
 }

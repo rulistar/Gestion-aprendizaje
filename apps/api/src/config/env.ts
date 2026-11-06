@@ -7,6 +7,7 @@ const envSchema = z.object({
   // 3001 y no 3000: así corre al mismo tiempo que Gestor de Proyectos (para probar la integración)
   API_PORT: z.coerce.number().int().min(1).max(65535).default(3001),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/, error: 'Debe ser una URL postgresql://' }),
   // Lista separada por comas: "https://app.ejemplo.com,https://otra.ejemplo.com"
   CORS_ORIGINS: z
     .string()

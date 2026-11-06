@@ -1,0 +1,137 @@
+// Modelo de datos base: mismas reglas que el ADR-0002 de Gestor de Proyectos (ver ADR-0001 de este repo).
+// Convenciones: UUID v7, tablas/columnas en snake_case, timestamptz, trazabilidad y borrado lógico.
+// TEC-01: User, Session, Workspace, Membership. El resto del modelo se agrega con su historia.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+  // partialIndexes: índices únicos que ignoran registros en la papelera
+  previewFeatures     = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserKind {
+  HUMAN
+  SERVICE // usuario de servicio de una app externa
+
+  @@map("user_kind")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+
+  @@map("user_status")
+}
+
+enum MembershipRole {
+  ADMIN
+  MEMBER
+  VIEWER
+
+  @@map("membership_role")
+}
+
+/// Persona (o app externa) con cuenta. Nunca se borra físicamente: se desactiva.
+model User {
+  id            String     @id @default(uuid(7)) @db.Uuid
+  /// Siempre en minúsculas y sin espacios (lo normaliza la capa de servicios)
+  email         String     @unique
+  name          String
+  /// Hash Argon2id. Nulo en usuarios de servicio (no inician sesión con contraseña)
+  passwordHash  String?    @map("password_hash")
+  kind          UserKind   @default(HUMAN)
+  status        UserStatus @default(ACTIVE)
+  /// Administra la instalación (lo recibe el primer Admin creado con setup:admin)
+  isSystemAdmin Boolean    @default(false) @map("is_system_admin")
+  lastLoginAt   DateTime?  @map("last_login_at") @db.Timestamptz(3)
+
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?  @map("created_by_id") @db.Uuid
+  updatedById String?  @map("updated_by_id") @db.Uuid
+  createdBy   User?    @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?    @relation("UserUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  sessions    Session[]
+  memberships Membership[] @relation("MembershipUser")
+
+  // Relaciones inversas de trazabilidad
+  usersCreated       User[]       @relation("UserCreatedBy")
+  usersUpdated       User[]       @relation("UserUpdatedBy")
+  workspacesCreated  Workspace[]  @relation("WorkspaceCreatedBy")
+  workspacesUpdated  Workspace[]  @relation("WorkspaceUpdatedBy")
+  workspacesDeleted  Workspace[]  @relation("WorkspaceDeletedBy")
+  membershipsCreated Membership[] @relation("MembershipCreatedBy")
+  membershipsUpdated Membership[] @relation("MembershipUpdatedBy")
+  membershipsDeleted Membership[] @relation("MembershipDeletedBy")
+
+  @@map("users")
+}
+
+/// Sesión activa. Se guarda el hash SHA-256 del token, nunca el token.
+/// Dato técnico: se elimina físicamente al cerrar sesión o expirar.
+model Session {
+  tokenHash  String   @id @map("token_hash")
+  userId     String   @map("user_id") @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz(3)
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Espacio de trabajo: frontera de seguridad de toda la información de negocio.
+model Workspace {
+  id   String @id @default(uuid(7)) @db.Uuid
+  name String
+
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdById String?   @map("created_by_id") @db.Uuid
+  updatedById String?   @map("updated_by_id") @db.Uuid
+  deletedById String?   @map("deleted_by_id") @db.Uuid
+  createdBy   User?     @relation("WorkspaceCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?     @relation("WorkspaceUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  deletedBy   User?     @relation("WorkspaceDeletedBy", fields: [deletedById], references: [id], onDelete: Restrict)
+
+  memberships Membership[]
+
+  @@map("workspaces")
+}
+
+/// Pertenencia de un usuario a un workspace, con su rol (roles por workspace).
+model Membership {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  workspaceId String         @map("workspace_id") @db.Uuid
+  userId      String         @map("user_id") @db.Uuid
+  role        MembershipRole
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User           @relation("MembershipUser", fields: [userId], references: [id], onDelete: Restrict)
+
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdById String?   @map("created_by_id") @db.Uuid
+  updatedById String?   @map("updated_by_id") @db.Uuid
+  deletedById String?   @map("deleted_by_id") @db.Uuid
+  createdBy   User?     @relation("MembershipCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?     @relation("MembershipUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  deletedBy   User?     @relation("MembershipDeletedBy", fields: [deletedById], references: [id], onDelete: Restrict)
+
+  /// Un usuario es miembro una sola vez por workspace, sin contar las membresías en la papelera
+  @@unique([workspaceId, userId], map: "memberships_workspace_user_active_key", where: { deletedAt: null })
+  @@index([userId])
+  @@map("memberships")
+}
