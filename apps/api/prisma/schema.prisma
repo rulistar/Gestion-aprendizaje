@@ -1,6 +1,6 @@
 // Modelo de datos base: mismas reglas que el ADR-0002 de Gestor de Proyectos (ver ADR-0001 de este repo).
 // Convenciones: UUID v7, tablas/columnas en snake_case, timestamptz, trazabilidad y borrado lógico.
-// TEC-01: User, Session, Workspace, Membership. El resto del modelo se agrega con su historia.
+// TEC-01: User, Session, Workspace, Membership. TEC-02: Invitation. El resto se agrega con su historia.
 
 generator client {
   provider            = "prisma-client"
@@ -70,6 +70,10 @@ model User {
   membershipsCreated Membership[] @relation("MembershipCreatedBy")
   membershipsUpdated Membership[] @relation("MembershipUpdatedBy")
   membershipsDeleted Membership[] @relation("MembershipDeletedBy")
+  invitationsAccepted Invitation[] @relation("InvitationAcceptedBy")
+  invitationsRevoked  Invitation[] @relation("InvitationRevokedBy")
+  invitationsCreated  Invitation[] @relation("InvitationCreatedBy")
+  invitationsUpdated  Invitation[] @relation("InvitationUpdatedBy")
 
   @@map("users")
 }
@@ -107,6 +111,7 @@ model Workspace {
   deletedBy   User?     @relation("WorkspaceDeletedBy", fields: [deletedById], references: [id], onDelete: Restrict)
 
   memberships Membership[]
+  invitations Invitation[]
 
   @@map("workspaces")
 }
@@ -134,4 +139,34 @@ model Membership {
   @@unique([workspaceId, userId], map: "memberships_workspace_user_active_key", where: { deletedAt: null })
   @@index([userId])
   @@map("memberships")
+}
+
+/// Invitación a un workspace: enlace de un solo uso. Se guarda el hash del token, nunca el token.
+model Invitation {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  workspaceId String         @map("workspace_id") @db.Uuid
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  /// Siempre en minúsculas y sin espacios, como User.email
+  email       String
+  role        MembershipRole
+  tokenHash   String         @unique @map("token_hash")
+  /// 48 horas después de crearla, como en Gestor de Proyectos
+  expiresAt   DateTime       @map("expires_at") @db.Timestamptz(3)
+
+  acceptedAt   DateTime? @map("accepted_at") @db.Timestamptz(3)
+  acceptedById String?   @map("accepted_by_id") @db.Uuid
+  acceptedBy   User?     @relation("InvitationAcceptedBy", fields: [acceptedById], references: [id], onDelete: Restrict)
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz(3)
+  revokedById  String?   @map("revoked_by_id") @db.Uuid
+  revokedBy    User?     @relation("InvitationRevokedBy", fields: [revokedById], references: [id], onDelete: Restrict)
+
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?  @map("created_by_id") @db.Uuid
+  updatedById String?  @map("updated_by_id") @db.Uuid
+  createdBy   User?    @relation("InvitationCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?    @relation("InvitationUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@index([workspaceId, email])
+  @@map("invitations")
 }

@@ -29,7 +29,7 @@ export function createTestDb(): Db {
 }
 
 const TRUNCATE_ALL =
-  'TRUNCATE TABLE "sessions", "memberships", "workspaces", "users" RESTART IDENTITY CASCADE';
+  'TRUNCATE TABLE "sessions", "invitations", "memberships", "workspaces", "users" RESTART IDENTITY CASCADE';
 
 /** PostgreSQL canceló la consulta por un bloqueo mutuo (deadlock) */
 function isDeadlock(error: unknown): boolean {

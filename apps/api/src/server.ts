@@ -9,6 +9,7 @@ const app = buildApp({
   logger: { level: env.LOG_LEVEL },
   trustProxy: env.TRUST_PROXY,
   security: { production: env.NODE_ENV === 'production', corsOrigins: env.CORS_ORIGINS },
+  sessionIdleMinutes: env.SESSION_IDLE_MINUTES,
 });
 
 // Cierre ordenado: termina las peticiones en curso y libera las conexiones a la BD antes de salir

@@ -15,6 +15,7 @@ cp .env.example .env   # y cambia los valores de ejemplo
 pnpm install
 pnpm db:up             # enciende PostgreSQL
 pnpm db:migrate        # aplica las migraciones
+pnpm setup:admin       # crea el primer Admin (solo en una instalación vacía)
 pnpm dev               # API en http://127.0.0.1:3001, web en http://localhost:5174
 ```
 

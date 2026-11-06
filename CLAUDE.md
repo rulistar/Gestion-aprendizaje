@@ -31,7 +31,7 @@ Detalle en [docs/backlog.md](docs/backlog.md) y [ADR-0002](docs/adr/ADR-0002-ele
 
 ## Stack (ADR-0001)
 
-El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17. Próximos (backlog): `argon2` y `@fastify/cookie` (TEC-02), TanStack Router y Query, shadcn/ui (TEC-03), Playwright (TEC-05).
+El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17, `argon2` 0.45 (Argon2id, binario nativo), `@fastify/cookie`. Próximos (backlog): TanStack Router y Query, shadcn/ui (TEC-03), Playwright (TEC-05).
 
 **No agregar dependencias fuera del ADR sin preguntar al usuario.**
 
@@ -40,7 +40,7 @@ El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vi
 - **Vite 7, no 8**: el binario nativo de rolldown (Vite 8) lo bloquea _Smart App Control_ en la PC del usuario. `@vitejs/plugin-react` en v5. Dependabot ignora esos majors.
 - **TypeScript ~6.0**: typescript-eslint 8 exige `typescript <6.1`.
 - **`@types/node` en 24.x**, igual que `.nvmrc`. Subirlos juntos.
-- **pnpm bloquea scripts de instalación**; los permitidos están en `allowBuilds` de `pnpm-workspace.yaml` (`esbuild`, `prisma`, `@prisma/engines`).
+- **pnpm bloquea scripts de instalación**; los permitidos están en `allowBuilds` de `pnpm-workspace.yaml` (`esbuild`, `prisma`, `@prisma/engines`, `argon2`).
 
 ## Puertos locales (distintos a los de Gestor de Proyectos)
 
@@ -58,6 +58,14 @@ apps/
     src/security.ts     helmet, CORS (CORS_ORIGINS), rate limit y HTTPS/HSTS en producción.
                         Rutas sensibles: `config: { rateLimit: authRateLimit }`
     src/modules/<mod>/  un módulo por funcionalidad: <mod>.routes.ts, <mod>.test.ts
+      auth/               POST /auth/login, POST /auth/logout, GET /auth/me; password.ts (Argon2id), tokens.ts (token + hash
+                          SHA-256), session.ts (sesión en BD, cookie "sid", requireAuth, startSession)
+      workspaces/         GET/POST/PATCH /workspaces[/:id], /:id/members (PATCH rol, DELETE quitar).
+                          access.ts: requireMembership / requirePermission (rol); request.membership = mi acceso
+      invitations/        GET/POST/DELETE /workspaces/:id/invitations, solo Admin; el token se devuelve una vez.
+                          accept.*: públicas, POST /invitations/preview|register|accept
+      setup/              createFirstAdmin: primer Admin + su workspace
+    src/cli/            setup-admin.ts → pnpm setup:admin; prompt.ts = pedir una contraseña sin mostrarla
     src/db/client.ts    createDb(): PrismaClient con el adaptador pg; se inyecta en buildApp({ db }) → app.db
     src/db/audit.ts     auditCreate/auditUpdate/auditSoftDelete/auditRestore + filtro notDeleted
     src/generated/      cliente de Prisma generado (ignorado por Git; se regenera en pnpm install)
@@ -66,6 +74,7 @@ apps/
     prisma.config.ts    configuración de Prisma 7 (carga el .env de la raíz)
 packages/
   shared/             esquemas Zod + tipos (z.infer) usados por web y api
+    src/schemas/permissions.ts  catálogo de permisos por rol (roleHasPermission)
 docs/                 acta, ADRs, backlog, sprints (Prettier no los reformatea)
 .github/              CI (ci.yml) y Dependabot
 docker-compose.yml    PostgreSQL local
@@ -79,6 +88,8 @@ docker-compose.yml    PostgreSQL local
 - Imports relativos en api y shared con extensión `.js` (ESM `NodeNext`). En web no hace falta (`Bundler`).
 - Imports de solo tipos: `import type`.
 - Pruebas junto al código: `*.test.ts`. Probar endpoints con `buildApp({ db }).inject()`, sin red. Las reglas de negocio puras van en `packages/shared` con sus pruebas.
+- **Rutas que exigen sesión**: `{ preHandler: requireAuth }` (de `modules/auth/session.ts`); el usuario queda en `request.auth.userId`. Sin sesión válida → 401.
+- **Rutas de un workspace** (`/workspaces/:workspaceId/...`): después de `requireAuth`, `{ preHandler: requirePermission('element.create') }` (de `modules/workspaces/access.ts`). No miembro o ID inválido → 404 (no revela que existe); rol sin permiso → 403. Toda consulta filtra también por `workspaceId`.
 - **Las pruebas de la API necesitan PostgreSQL** (`pnpm db:up`). Usan una BD aparte, `<DATABASE_URL>_test` (o `TEST_DATABASE_URL`), que `global-setup.ts` crea y migra sola; se niegan a correr contra una BD que no termine en `_test`. Se ejecutan en serie y cada archivo limpia con `resetDb()`. Toda tabla nueva se agrega al TRUNCATE de `test-db.ts`.
 - **Prisma**: toda tabla nueva lleva UUID v7 (`@default(uuid(7)) @db.Uuid`), `@@map`/`@map` en snake_case, `@db.Timestamptz(3)` y campos de trazabilidad con relaciones a `User`. Toda consulta normal incluye `notDeleted`. Índices únicos que deben ignorar la papelera: `@@unique([...], where: { deletedAt: null })`.
 - Cambiar el esquema → `pnpm db:migrate` (crea la migración con un nombre descriptivo) → incluir la carpeta de la migración en el commit. Nunca editar una migración ya fusionada en `main`.
@@ -92,6 +103,7 @@ pnpm db:down           # detiene PostgreSQL (los datos persisten en el volumen)
 pnpm db:migrate        # crea/aplica migraciones y regenera el cliente de Prisma
 pnpm db:studio         # explorador visual de la BD (Prisma Studio)
 pnpm db:reset          # ⚠️ borra y recrea la BD de desarrollo aplicando todas las migraciones
+pnpm setup:admin       # crea el primer Admin (interactivo; solo si no hay usuarios)
 pnpm dev               # api (:3001) + web (:5174) en paralelo
 pnpm test              # Vitest en todos los paquetes (requiere pnpm db:up)
 pnpm lint              # ESLint   | pnpm lint:fix

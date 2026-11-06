@@ -22,6 +22,7 @@
     "db:migrate": "pnpm --filter @aprendizaje/api db:migrate",
     "db:studio": "pnpm --filter @aprendizaje/api db:studio",
     "db:reset": "pnpm --filter @aprendizaje/api db:reset",
+    "setup:admin": "pnpm --filter @aprendizaje/api setup:admin",
     "prepare": "husky"
   },
   "lint-staged": {

@@ -4,6 +4,7 @@ packages:
 # pnpm bloquea los scripts de instalación; solo se autorizan los necesarios
 allowBuilds:
   '@prisma/engines': true
+  argon2: true
   esbuild: true
   prisma: true
 # Ejecuta los scripts post<nombre> (postdb:migrate regenera el cliente de Prisma tras migrar)

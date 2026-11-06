@@ -19,6 +19,8 @@ const envSchema = z.object({
         .filter(Boolean),
     )
     .pipe(z.array(z.url({ protocol: /^https?$/ }).refine(isOrigin, 'Debe ser solo un origen'))),
+  // Minutos sin actividad tras los que expira una sesión
+  SESSION_IDLE_MINUTES: z.coerce.number().int().min(5).max(1440).default(60),
   // true solo detrás del proxy del hosting: así se confía en X-Forwarded-For / X-Forwarded-Proto
   TRUST_PROXY: z.stringbool().default(false),
 });
