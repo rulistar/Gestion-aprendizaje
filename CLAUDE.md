@@ -31,7 +31,7 @@ Detalle en [docs/backlog.md](docs/backlog.md) y [ADR-0002](docs/adr/ADR-0002-ele
 
 ## Stack (ADR-0001)
 
-El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17, `argon2` 0.45 (Argon2id, binario nativo), `@fastify/cookie`. Próximos (backlog): TanStack Router y Query, shadcn/ui (TEC-03), Playwright (TEC-05).
+El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17, `argon2` 0.45 (Argon2id, binario nativo), `@fastify/cookie`, TanStack Router y Query, shadcn/ui (copiado a mano, con Radix), `lucide-react`. Próximos (backlog): Playwright (TEC-05).
 
 **No agregar dependencias fuera del ADR sin preguntar al usuario.**
 
@@ -51,6 +51,17 @@ API **3001** · web **5174** (proxy de `/api` → 3001) · PostgreSQL **5433** (
 ```
 apps/
   web/                React + Vite. Proxy de /api → http://127.0.0.1:3001 en desarrollo
+    src/router.tsx      rutas en código (TanStack Router): /login pública; la ruta "app" protege a sus hijas (/, /w/$workspaceId).
+                        getRouteApi usa el id: "/app/w/..."
+    src/lib/api.ts      apiFetch(): llamadas a /api/v1 validadas con esquemas de shared; errores → ApiError
+    src/lib/auth.ts     meQueryOptions (GET /auth/me), useCurrentUser, useLogin, useLogout
+    src/lib/<mod>.ts    queryOptions + mutaciones de cada módulo; la ruta precarga con loader
+    src/lib/use-schema-form.ts  formularios validados con el esquema de shared (FormData + errores por campo)
+    src/lib/brand.ts    APP_NAME e initials() para avatares
+    src/components/ui/  componentes de shadcn/ui (copiados, sin el CLI; se pueden modificar)
+    src/components/app-sidebar.tsx  menú lateral con el combo "Espacio de trabajo"; routes/app-layout.tsx = menú + barra superior
+    src/index.css       tema: las mismas variables de color de Gestor de Proyectos y Plus Jakarta Sans
+    src/routes/         una página por archivo; leen la ruta con getRouteApi() para no importar router.tsx
   api/                Fastify — monolito modular
     src/app.ts          buildApp(): crea la instancia sin abrir puerto (testeable con app.inject)
     src/server.ts       arranque + cierre ordenado
@@ -87,6 +98,7 @@ docker-compose.yml    PostgreSQL local
 - `@aprendizaje/shared` se resuelve al **código fuente** en desarrollo, tests, typecheck y build de la web mediante la condición de export `@aprendizaje/source`. Solo `node dist/server.js` usa el `dist` compilado.
 - Imports relativos en api y shared con extensión `.js` (ESM `NodeNext`). En web no hace falta (`Bundler`).
 - Imports de solo tipos: `import type`.
+- En la web, los permisos de shared (`roleHasPermission`) solo ocultan botones; quien decide es la API.
 - Pruebas junto al código: `*.test.ts`. Probar endpoints con `buildApp({ db }).inject()`, sin red. Las reglas de negocio puras van en `packages/shared` con sus pruebas.
 - **Rutas que exigen sesión**: `{ preHandler: requireAuth }` (de `modules/auth/session.ts`); el usuario queda en `request.auth.userId`. Sin sesión válida → 401.
 - **Rutas de un workspace** (`/workspaces/:workspaceId/...`): después de `requireAuth`, `{ preHandler: requirePermission('element.create') }` (de `modules/workspaces/access.ts`). No miembro o ID inválido → 404 (no revela que existe); rol sin permiso → 403. Toda consulta filtra también por `workspaceId`.

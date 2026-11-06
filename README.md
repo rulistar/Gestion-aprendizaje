@@ -19,7 +19,7 @@ pnpm setup:admin       # crea el primer Admin (solo en una instalación vacía)
 pnpm dev               # API en http://127.0.0.1:3001, web en http://localhost:5174
 ```
 
-Abre http://localhost:5174: debe decir "Estado de la API: conectada".
+Abre http://localhost:5174 e inicia sesión con el Admin que creaste.
 
 ## Verificar antes de un commit
 

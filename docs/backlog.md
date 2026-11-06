@@ -59,4 +59,5 @@
 - ¿El elemento lleva **prioridad** (Alta, Media, Baja) como en el prototipo?
 - Lista inicial de **tipos de actividad** (propuesta: la del prototipo).
 - ¿Se agregan al backlog **mi perfil**, **restablecer contraseña** y **administrar usuarios** (HU-29, HU-30 y HU-54 de Gestor de Proyectos)? Quedaron fuera de TEC-02.
+- ¿Se agrega una historia para las **pantallas de miembros e invitaciones**? La API ya existe (TEC-02), pero TEC-03 solo incluye el menú y el inicio de sesión.
 - Etiquetas por omisión de **Lectura** (por ejemplo, ¿páginas en vez de semanas?).
