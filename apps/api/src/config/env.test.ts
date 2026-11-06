@@ -12,6 +12,7 @@ describe('loadEnv', () => {
       LOG_LEVEL: 'info',
       DATABASE_URL,
       CORS_ORIGINS: ['http://localhost:5174'],
+      SESSION_IDLE_MINUTES: 60,
       TRUST_PROXY: false,
     });
   });
