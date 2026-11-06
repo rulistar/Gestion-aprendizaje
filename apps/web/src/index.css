@@ -1,1 +1,67 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+
+/*
+ * Tema de la app: el mismo de Gestor de Proyectos, para que el ecosistema se sienta uno solo.
+ * Los componentes usan nombres de color con significado (bg-primary, text-muted-foreground…) en
+ * vez de colores fijos: cambiar el tema es cambiar estas variables.
+ */
+:root {
+  --radius: 0.625rem;
+  --background: #f6f7f9; /* fondo general */
+  --foreground: #101828;
+  --card: #ffffff;
+  --card-foreground: #101828;
+  --popover: #ffffff;
+  --popover-foreground: #101828;
+  --primary: #0f6e7a; /* turquesa: botones principales, menú activo */
+  --primary-foreground: #ffffff;
+  --secondary: #f2f4f7;
+  --secondary-foreground: #101828;
+  --muted: #f2f4f7;
+  --muted-foreground: #555f6d; /* contraste 6.4:1 sobre blanco */
+  --accent: #e2f2f3; /* turquesa muy claro: elemento activo o seleccionado */
+  --accent-foreground: #0b5862;
+  --destructive: #b42318;
+  --warning: #f2c96b; /* dorado: lo urgente */
+  --warning-foreground: #7a4e07;
+  --border: #e4e7ec;
+  --input: #d0d5dd;
+  --ring: #0f6e7a;
+}
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
