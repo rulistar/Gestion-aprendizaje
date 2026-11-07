@@ -53,7 +53,7 @@ function toNumber(value: { toNumber(): number } | null): number | null {
   return value === null ? null : value.toNumber();
 }
 
-function toElement(row: {
+export function toElement(row: {
   id: string;
   typeId: string;
   name: string;
@@ -80,13 +80,21 @@ function toElement(row: {
     manualTotalHours: toNumber(row.manualTotalHours),
   };
   return {
-    ...row,
+    id: row.id,
+    typeId: row.typeId,
+    name: row.name,
+    platformId: row.platformId,
+    sponsorId: row.sponsorId,
+    categoryId: row.categoryId,
+    levelId: row.levelId,
     ...hours,
     totalHours: computeTotalHours(hours),
     estimatedStart: toIsoDate(row.estimatedStart),
     estimatedEnd: toIsoDate(row.estimatedEnd),
     actualStart: toIsoDate(row.actualStart),
     actualEnd: toIsoDate(row.actualEnd),
+    status: row.status,
+    notes: row.notes,
     updatedAt: row.updatedAt.toISOString(),
   };
 }
@@ -95,7 +103,7 @@ function toElement(row: {
  * Todo lo que la ficha referencia debe ser de este espacio y del catálogo correcto (un ID de otro
  * espacio no debe colarse). Lo archivado no se ofrece para lo nuevo, pero quien ya lo usa lo conserva.
  */
-async function assertReferences(
+export async function assertReferences(
   tx: Tx,
   workspaceId: string,
   ficha: Reference,
@@ -123,7 +131,7 @@ async function assertReferences(
 }
 
 /** Las columnas de la ficha, con las fechas reales ya resueltas */
-function fichaData(ficha: ElementFicha, previous: ElementStatus | null, today: string) {
+export function fichaData(ficha: ElementFicha, previous: ElementStatus | null, today: string) {
   const { actualStart, actualEnd } = applyStatusDates(previous, ficha, today);
   if (actualStart && actualEnd && actualEnd < actualStart) {
     throw new InvalidActualDatesError();

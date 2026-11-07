@@ -1,6 +1,6 @@
 // Modelo de datos base: mismas reglas que el ADR-0002 de Gestor de Proyectos (ver ADR-0001 de este repo).
 // Convenciones: UUID v7, tablas/columnas en snake_case, timestamptz, trazabilidad y borrado lógico.
-// TEC-01: User, Session, Workspace, Membership. TEC-02: Invitation. HU-01: CatalogItem. HU-02: ElementType. HU-03: Element. El resto se agrega con su historia.
+// TEC-01: User, Session, Workspace, Membership. TEC-02: Invitation. HU-01: CatalogItem. HU-02: ElementType. HU-03: Element. HU-04: ElementNode. El resto se agrega con su historia.
 
 generator client {
   provider            = "prisma-client"
@@ -47,6 +47,24 @@ enum ElementStatus {
   DONE
 
   @@map("element_status")
+}
+
+enum NodeKind {
+  CHAPTER
+  COURSE
+  ACTIVITY
+
+  @@map("node_kind")
+}
+
+enum ActivityStatus {
+  PENDING
+  IN_PROGRESS
+  PAUSED
+  DONE
+  CANCELLED
+
+  @@map("activity_status")
 }
 
 enum MembershipRole {
@@ -101,6 +119,9 @@ model User {
   elementsCreated Element[] @relation("ElementCreatedBy")
   elementsUpdated Element[] @relation("ElementUpdatedBy")
   elementsDeleted Element[] @relation("ElementDeletedBy")
+  nodesCreated ElementNode[] @relation("NodeCreatedBy")
+  nodesUpdated ElementNode[] @relation("NodeUpdatedBy")
+  nodesDeleted ElementNode[] @relation("NodeDeletedBy")
 
   @@map("users")
 }
@@ -142,6 +163,7 @@ model Workspace {
   catalogItems CatalogItem[]
   elementTypes ElementType[]
   elements Element[]
+  elementNodes ElementNode[]
 
   @@map("workspaces")
 }
@@ -224,6 +246,12 @@ model CatalogItem {
   elementsAsCategory Element[] @relation("ElementCategory")
   elementsAsLevel    Element[] @relation("ElementLevel")
 
+  nodesAsPlatform     ElementNode[] @relation("NodePlatform")
+  nodesAsSponsor      ElementNode[] @relation("NodeSponsor")
+  nodesAsCategory     ElementNode[] @relation("NodeCategory")
+  nodesAsLevel        ElementNode[] @relation("NodeLevel")
+  nodesAsActivityType ElementNode[] @relation("NodeActivityType")
+
   /// Sin duplicados entre los activos; los archivados no ocupan el nombre
   @@unique([workspaceId, kind, name], map: "catalog_items_workspace_kind_name_active_key", where: { archivedAt: null })
   @@index([workspaceId, kind])
@@ -250,6 +278,7 @@ model ElementType {
   updatedBy   User?    @relation("ElementTypeUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
 
   elements Element[]
+  nodes    ElementNode[]
 
   /// Sin duplicados entre los activos; los archivados no ocupan el nombre
   @@unique([workspaceId, name], map: "element_types_workspace_name_active_key", where: { archivedAt: null })
@@ -301,7 +330,72 @@ model Element {
   updatedBy   User?     @relation("ElementUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   deletedBy   User?     @relation("ElementDeletedBy", fields: [deletedById], references: [id], onDelete: Restrict)
 
+  nodes ElementNode[]
+
   @@index([workspaceId, createdAt])
   @@index([typeId])
   @@map("elements")
+}
+
+/// Nodo del árbol de un elemento: hasta 3 niveles, ordenados entre hermanos (ADR-0002 §2).
+/// Una sola tabla: las columnas de cada clase quedan vacías en las demás. Un Curso usa las columnas
+/// de la ficha; una Actividad, las suyas y las de fechas. La API valida cada clase con su esquema.
+model ElementNode {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  workspaceId String      @map("workspace_id") @db.Uuid
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  elementId   String      @map("element_id") @db.Uuid
+  element     Element     @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  parentId    String?     @map("parent_id") @db.Uuid
+  parent      ElementNode? @relation("NodeChildren", fields: [parentId], references: [id], onDelete: NoAction)
+  children    ElementNode[] @relation("NodeChildren")
+  kind        NodeKind
+  /// 1 a 3. Se fija al crear: un nodo no cambia de padre, solo de lugar entre sus hermanos
+  level       Int
+  position    Int         @default(0)
+  name        String
+
+  // Ficha de un nodo Curso (misma definición que Element)
+  typeId     String?       @map("type_id") @db.Uuid
+  type       ElementType?  @relation(fields: [typeId], references: [id], onDelete: NoAction)
+  platformId String?       @map("platform_id") @db.Uuid
+  platform   CatalogItem?  @relation("NodePlatform", fields: [platformId], references: [id], onDelete: NoAction)
+  sponsorId  String?       @map("sponsor_id") @db.Uuid
+  sponsor    CatalogItem?  @relation("NodeSponsor", fields: [sponsorId], references: [id], onDelete: NoAction)
+  categoryId String?       @map("category_id") @db.Uuid
+  category   CatalogItem?  @relation("NodeCategory", fields: [categoryId], references: [id], onDelete: NoAction)
+  levelId    String?       @map("level_id") @db.Uuid
+  catalogLevel CatalogItem? @relation("NodeLevel", fields: [levelId], references: [id], onDelete: NoAction)
+  durationWeeks    Decimal? @map("duration_weeks") @db.Decimal(6, 2)
+  daysPerWeek      Int?     @map("days_per_week")
+  hoursPerDay      Decimal? @map("hours_per_day") @db.Decimal(4, 2)
+  manualTotalHours Decimal? @map("manual_total_hours") @db.Decimal(8, 2)
+  status           ElementStatus?
+  notes            String?
+
+  // Actividad
+  activityTypeId  String?         @map("activity_type_id") @db.Uuid
+  activityType    CatalogItem?    @relation("NodeActivityType", fields: [activityTypeId], references: [id], onDelete: NoAction)
+  durationMinutes Int?            @map("duration_minutes")
+  activityStatus  ActivityStatus? @map("activity_status")
+
+  // Fechas de un Curso o una Actividad
+  estimatedStart DateTime? @map("estimated_start") @db.Date
+  estimatedEnd   DateTime? @map("estimated_end") @db.Date
+  actualStart    DateTime? @map("actual_start") @db.Date
+  actualEnd      DateTime? @map("actual_end") @db.Date
+
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdById String?   @map("created_by_id") @db.Uuid
+  updatedById String?   @map("updated_by_id") @db.Uuid
+  deletedById String?   @map("deleted_by_id") @db.Uuid
+  createdBy   User?     @relation("NodeCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?     @relation("NodeUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  deletedBy   User?     @relation("NodeDeletedBy", fields: [deletedById], references: [id], onDelete: Restrict)
+
+  @@index([elementId, parentId, position])
+  @@index([workspaceId])
+  @@map("element_nodes")
 }

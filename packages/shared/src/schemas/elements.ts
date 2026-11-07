@@ -34,6 +34,32 @@ function positiveNumber(max: number) {
     .default(null);
 }
 
+/** En la ficha y en las actividades, un fin no puede ser anterior a su inicio */
+export function checkDateOrder(
+  dates: {
+    estimatedStart: string | null;
+    estimatedEnd: string | null;
+    actualStart: string | null;
+    actualEnd: string | null;
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (dates.estimatedStart && dates.estimatedEnd && dates.estimatedEnd < dates.estimatedStart) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['estimatedEnd'],
+      message: 'El fin no puede ser anterior al inicio',
+    });
+  }
+  if (dates.actualStart && dates.actualEnd && dates.actualEnd < dates.actualStart) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['actualEnd'],
+      message: 'El fin no puede ser anterior al inicio',
+    });
+  }
+}
+
 /**
  * La ficha (ADR-0002 §1): una sola definición para el Elemento y, en HU-04, para los nodos Curso.
  * Las reglas no dependen del tipo de elemento; este solo cambia el nombre visible de cada campo.
@@ -68,22 +94,7 @@ export const elementFichaSchema = z
     status: elementStatusSchema.default('NOT_STARTED'),
     notes: z.string().trim().max(5000, 'Máximo 5000 caracteres').nullable().default(null),
   })
-  .superRefine((ficha, ctx) => {
-    if (ficha.estimatedStart && ficha.estimatedEnd && ficha.estimatedEnd < ficha.estimatedStart) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['estimatedEnd'],
-        message: 'El fin no puede ser anterior al inicio',
-      });
-    }
-    if (ficha.actualStart && ficha.actualEnd && ficha.actualEnd < ficha.actualStart) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['actualEnd'],
-        message: 'El fin no puede ser anterior al inicio',
-      });
-    }
-  });
+  .superRefine(checkDateOrder);
 export type ElementFicha = z.infer<typeof elementFichaSchema>;
 
 /** Los campos del formulario de la ficha, con los mismos nombres del esquema */
@@ -106,12 +117,18 @@ export const ELEMENT_FORM_FIELDS = [
   'notes',
 ] as const;
 
-const NUMERIC_FIELDS = new Set(['durationWeeks', 'daysPerWeek', 'hoursPerDay', 'manualTotalHours']);
+const NUMERIC_FIELDS = new Set([
+  'durationWeeks',
+  'daysPerWeek',
+  'hoursPerDay',
+  'manualTotalHours',
+  'durationMinutes',
+]);
 /** Estos no significan "sin valor" en blanco: el esquema decide (obligatorio u omisión) */
 const REQUIRED_FIELDS = new Set(['name', 'typeId']);
 
 /** Un formulario solo da texto: en blanco es "sin valor" y los números se convierten */
-function fromFormValues(values: unknown) {
+export function fromFormValues(values: unknown) {
   const ficha: Record<string, string | number | null> = {};
   for (const [field, value] of Object.entries(values as Record<string, unknown>)) {
     const text = typeof value === 'string' ? value.trim() : '';
@@ -174,12 +191,17 @@ export function computeTotalHours({
  * capturado. Solo actúan cuando el estado cambia: así una fecha que el usuario borra no regresa.
  * Reabrir un elemento terminado quita el fin, porque ya no es cierto. El inicio se llena también
  * al pasar directo a Terminado, como en Gestor de Proyectos. `previous` es null al crear.
+ * Vale para fichas y actividades: los estados En curso y Terminado/Hecha usan la misma clave.
  */
 export function applyStatusDates(
-  previous: ElementStatus | null,
-  { status, actualStart, actualEnd }: Pick<ElementFicha, 'status' | 'actualStart' | 'actualEnd'>,
+  previous: string | null,
+  {
+    status,
+    actualStart,
+    actualEnd,
+  }: { status: string; actualStart: string | null; actualEnd: string | null },
   today: string,
-): Pick<ElementFicha, 'actualStart' | 'actualEnd'> {
+): { actualStart: string | null; actualEnd: string | null } {
   const changed = previous !== status;
   const started = changed && (status === 'IN_PROGRESS' || status === 'DONE');
   const reopened = previous === 'DONE' && status !== 'DONE';

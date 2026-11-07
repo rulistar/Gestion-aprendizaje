@@ -6,6 +6,7 @@ import { authRoutes } from './modules/auth/auth.routes.js';
 import { catalogsRoutes } from './modules/catalogs/catalogs.routes.js';
 import { elementTypesRoutes } from './modules/element-types/element-types.routes.js';
 import { elementsRoutes } from './modules/elements/elements.routes.js';
+import { nodesRoutes } from './modules/elements/nodes.routes.js';
 import { healthRoutes } from './modules/health/health.routes.js';
 import { acceptInvitationRoutes } from './modules/invitations/accept.routes.js';
 import { invitationsRoutes } from './modules/invitations/invitations.routes.js';
@@ -66,6 +67,7 @@ export function buildApp({
   void app.register(catalogsRoutes, { prefix: '/api/v1' });
   void app.register(elementTypesRoutes, { prefix: '/api/v1' });
   void app.register(elementsRoutes, { prefix: '/api/v1' });
+  void app.register(nodesRoutes, { prefix: '/api/v1' });
 
   return app;
 }

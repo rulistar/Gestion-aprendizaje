@@ -6,7 +6,7 @@ const elementsPath = (workspaceId: string) => `/workspaces/${workspaceId}/elemen
 const elementsKey = (workspaceId: string) => ['workspaces', workspaceId, 'elements'];
 
 /** El día en la zona del usuario: el servidor no la conoce y las fechas reales dependen de ella */
-function localToday() {
+export function localToday() {
   const now = new Date();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');

@@ -1,5 +1,6 @@
 export * from './schemas/auth.js';
 export * from './schemas/catalogs.js';
+export * from './schemas/element-nodes.js';
 export * from './schemas/element-types.js';
 export * from './schemas/elements.js';
 export * from './schemas/health.js';

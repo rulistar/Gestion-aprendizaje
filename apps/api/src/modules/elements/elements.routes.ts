@@ -18,12 +18,12 @@ const BASE = '/workspaces/:workspaceId/elements';
 const NOT_FOUND = 'Elemento no encontrado';
 
 /** El día en la zona del usuario, para las fechas reales automáticas; si no viene, el del servidor */
-function todayOf(request: FastifyRequest) {
+export function todayOf(request: FastifyRequest) {
   const query = elementTodayQuerySchema.safeParse(request.query);
   return (query.success && query.data.today) || new Date().toISOString().slice(0, 10);
 }
 
-function sendElementError(reply: FastifyReply, error: unknown) {
+export function sendElementError(reply: FastifyReply, error: unknown) {
   if (error instanceof InvalidReferenceError) {
     return reply.code(400).send({ message: error.message });
   }

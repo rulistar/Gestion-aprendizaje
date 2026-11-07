@@ -9,6 +9,7 @@ import {
 import { ApiError } from '@/lib/api';
 import { meQueryKey, meQueryOptions } from '@/lib/auth';
 import { catalogsQueryOptions } from '@/lib/catalogs';
+import { nodesQueryOptions } from '@/lib/element-nodes';
 import { elementTypesQueryOptions } from '@/lib/element-types';
 import { elementQueryOptions, elementsQueryOptions } from '@/lib/elements';
 import { workspaceQueryOptions } from '@/lib/workspaces';
@@ -179,6 +180,7 @@ const elementDetailRoute = createRoute({
       context.queryClient.ensureQueryData(
         elementQueryOptions(params.workspaceId, params.elementId),
       ),
+      context.queryClient.ensureQueryData(nodesQueryOptions(params.workspaceId, params.elementId)),
       context.queryClient.ensureQueryData(elementTypesQueryOptions(params.workspaceId)),
       context.queryClient.ensureQueryData(catalogsQueryOptions(params.workspaceId)),
     ]),
