@@ -31,5 +31,6 @@ pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
 
 - [Acta del proyecto](docs/00-acta-proyecto.md)
 - [Decisiones de arquitectura](docs/adr/)
+- [Despliegue](docs/despliegue.md)
 - [Backlog](docs/backlog.md) y [sprints](docs/sprints/)
 - [CLAUDE.md](CLAUDE.md): contexto y reglas del repo
