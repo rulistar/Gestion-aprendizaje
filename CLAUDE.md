@@ -77,6 +77,8 @@ apps/
                           accept.*: públicas, POST /invitations/preview|register|accept
       elements/           fichas (HU-03): GET lista y /:elementId (element.read), POST (element.create), PUT (element.update),
                           con ?today= (día del usuario) para las fechas reales; valida que el tipo y los catálogos sean del espacio
+                          nodes.*: estructura (HU-04) bajo /elements/:elementId/nodes: GET (element.read); POST, PUT, POST /:nodeId/move
+                          y DELETE con todo lo que contiene (element.update); reglas del árbol en shared
       element-types/      GET /workspaces/:id/element-types (miembros), POST y PATCH /:typeId (catalog.manage): nombre, etiquetas
                           y archivar (queda al menos uno activo); seedElementTypes carga Curso, Lectura y Otro
       catalogs/           GET /workspaces/:id/catalogs (miembros), POST y PATCH /:itemId (catalog.manage): renombrar y
@@ -94,6 +96,7 @@ packages/
     src/schemas/permissions.ts  catálogo de permisos por rol (roleHasPermission)
     src/schemas/catalogs.ts     los cinco catálogos: tipos, etiquetas y valores iniciales
     src/schemas/elements.ts     la ficha (una sola, también para los nodos Curso de HU-04), horas totales y fechas reales automáticas, con pruebas
+    src/schemas/element-nodes.ts  árbol de un elemento: clases, reglas de 3 niveles (allowedChildKinds), actividad y buildNodeTree, con pruebas
     src/schemas/element-types.ts  tipos de elemento: campos de la ficha, nombres por omisión y etiquetas propias (HU-02), con pruebas
 docs/                 acta, ADRs, backlog, sprints (Prettier no los reformatea)
 .github/              CI (ci.yml) y Dependabot

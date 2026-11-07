@@ -43,6 +43,8 @@ Espacio de trabajo
 - Una actividad no tiene hijos.
 - Un nodo Curso usa **el mismo esquema Zod** de la ficha que el Elemento: una sola definición en `packages/shared`.
 - Los nodos se ordenan entre hermanos (subir y bajar).
+- Una sola tabla (`element_nodes`): las columnas de cada clase quedan vacías en las demás. Un nodo no cambia de clase ni de padre.
+- Quitar un nodo manda a la papelera todo lo que contiene, con la misma fecha, para restaurarlos juntos en HU-07. Lo hace quien tiene `element.update`, como las fases en Gestor de Proyectos: armar la estructura es parte de editar el elemento.
 
 ### 3. Etiquetas por tipo de elemento
 Cada tipo define cómo se llama cada campo de la ficha (por ejemplo, en Lectura "Plataforma" puede mostrarse como "Editorial"). Los campos y sus reglas no cambian, solo su nombre visible: así las reglas de cálculo y la integración siguen funcionando. Es el mismo enfoque de tipos configurables de Gestor de Proyectos (su ADR-0004).

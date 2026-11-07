@@ -3,7 +3,8 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { ElementForm } from '@/components/element-form';
-import { Card, CardContent } from '@/components/ui/card';
+import { ElementStructure } from '@/components/element-structure';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { catalogsQueryOptions } from '@/lib/catalogs';
 import { elementTypesQueryOptions } from '@/lib/element-types';
 import { elementQueryOptions, useUpdateElement } from '@/lib/elements';
@@ -11,7 +12,7 @@ import { workspaceQueryOptions } from '@/lib/workspaces';
 
 const route = getRouteApi('/app/w/$workspaceId/elementos/$elementId');
 
-/** Ver y editar la ficha de un elemento (HU-03) */
+/** Ver y editar la ficha de un elemento (HU-03) y su estructura (HU-04) */
 export function ElementDetailPage() {
   const { workspaceId, elementId } = route.useParams();
   const { data: workspace } = useSuspenseQuery(workspaceQueryOptions(workspaceId));
@@ -50,6 +51,20 @@ export function ElementDetailPage() {
             submitLabel="Guardar cambios"
             onEdit={() => update.reset()}
             onSubmit={(data) => update.mutate(data)}
+          />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Estructura</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ElementStructure
+            workspaceId={workspaceId}
+            elementId={elementId}
+            types={types}
+            catalogs={catalogs}
+            canUpdate={canUpdate}
           />
         </CardContent>
       </Card>
