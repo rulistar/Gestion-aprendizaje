@@ -51,7 +51,7 @@ API **3001** · web **5174** (proxy de `/api` → 3001) · PostgreSQL **5433** (
 ```
 apps/
   web/                React + Vite. Proxy de /api → http://127.0.0.1:3001 en desarrollo
-    src/router.tsx      rutas en código (TanStack Router): /login pública; la ruta "app" protege a sus hijas (/, /w/$workspaceId, /w/$workspaceId/catalogos, /w/$workspaceId/tipos).
+    src/router.tsx      rutas en código (TanStack Router): /login pública; la ruta "app" protege a sus hijas (/, /w/$workspaceId, /w/$workspaceId/catalogos, /w/$workspaceId/tipos, /w/$workspaceId/elementos[/nuevo|/$elementId]).
                         getRouteApi usa el id: "/app/w/..."
     src/lib/api.ts      apiFetch(): llamadas a /api/v1 validadas con esquemas de shared; errores → ApiError
     src/lib/auth.ts     meQueryOptions (GET /auth/me), useCurrentUser, useLogin, useLogout
@@ -75,6 +75,8 @@ apps/
                           access.ts: requireMembership / requirePermission (rol); request.membership = mi acceso
       invitations/        GET/POST/DELETE /workspaces/:id/invitations, solo Admin; el token se devuelve una vez.
                           accept.*: públicas, POST /invitations/preview|register|accept
+      elements/           fichas (HU-03): GET lista y /:elementId (element.read), POST (element.create), PUT (element.update),
+                          con ?today= (día del usuario) para las fechas reales; valida que el tipo y los catálogos sean del espacio
       element-types/      GET /workspaces/:id/element-types (miembros), POST y PATCH /:typeId (catalog.manage): nombre, etiquetas
                           y archivar (queda al menos uno activo); seedElementTypes carga Curso, Lectura y Otro
       catalogs/           GET /workspaces/:id/catalogs (miembros), POST y PATCH /:itemId (catalog.manage): renombrar y
@@ -91,6 +93,7 @@ packages/
   shared/             esquemas Zod + tipos (z.infer) usados por web y api
     src/schemas/permissions.ts  catálogo de permisos por rol (roleHasPermission)
     src/schemas/catalogs.ts     los cinco catálogos: tipos, etiquetas y valores iniciales
+    src/schemas/elements.ts     la ficha (una sola, también para los nodos Curso de HU-04), horas totales y fechas reales automáticas, con pruebas
     src/schemas/element-types.ts  tipos de elemento: campos de la ficha, nombres por omisión y etiquetas propias (HU-02), con pruebas
 docs/                 acta, ADRs, backlog, sprints (Prettier no los reformatea)
 .github/              CI (ci.yml) y Dependabot

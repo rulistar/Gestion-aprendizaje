@@ -1,12 +1,12 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { getRouteApi } from '@tanstack/react-router';
+import { getRouteApi, Link } from '@tanstack/react-router';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ROLE_LABELS, workspaceQueryOptions } from '@/lib/workspaces';
 
 // getRouteApi evita importar router.tsx aquí (que a su vez importa esta página)
 const route = getRouteApi('/app/w/$workspaceId');
 
-/** Portada del espacio. La lista de elementos llega con HU-05 */
+/** Portada del espacio */
 export function WorkspacePage() {
   const { workspaceId } = route.useParams();
   const { data: workspace } = useSuspenseQuery(workspaceQueryOptions(workspaceId));
@@ -19,10 +19,16 @@ export function WorkspacePage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Aún no hay elementos</CardTitle>
-          <CardDescription>
-            Aquí verás tus cursos, lecturas y otros temas, con su avance.
-          </CardDescription>
+          <CardTitle>
+            <Link
+              to="/w/$workspaceId/elementos"
+              params={{ workspaceId }}
+              className="hover:underline"
+            >
+              Elementos
+            </Link>
+          </CardTitle>
+          <CardDescription>Tus cursos, lecturas y otros temas.</CardDescription>
         </CardHeader>
       </Card>
     </div>
