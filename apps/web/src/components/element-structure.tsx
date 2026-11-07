@@ -7,7 +7,9 @@ import {
   buildNodeTree,
   chapterContentSchema,
   ELEMENT_STATUS_LABELS,
+  elementProgress,
   nodeKindLabel,
+  nodeProgress,
   type Activity,
   type ActivityContent,
   type CatalogItem,
@@ -33,6 +35,7 @@ import {
 import { useState } from 'react';
 import { ElementForm } from '@/components/element-form';
 import { FieldError } from '@/components/field-error';
+import { ProgressBar } from '@/components/progress-bar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -81,9 +84,11 @@ function summary(node: NodeTreeItem, catalogs: CatalogItem[]) {
 export function ElementStructure(shared: Shared) {
   const { data: nodes } = useSuspenseQuery(nodesQueryOptions(shared.workspaceId, shared.elementId));
   const tree = buildNodeTree(nodes);
+  const total = elementProgress(nodes);
 
   return (
     <div className="grid gap-3">
+      {total.total > 0 && <ProgressBar progress={total} label="Avance del elemento" />}
       {tree.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           Todavía no tiene estructura. Agrega capítulos, cursos o actividades.
@@ -133,6 +138,8 @@ function NodeRow({
   // Un Lector puede abrir lo que tiene más datos de los que caben en el renglón
   const canOpen = canUpdate || node.kind !== 'CHAPTER';
   const error = move.error ?? remove.error;
+  // Una actividad ya dice su estado; lo que agrupa muestra el avance de lo que contiene
+  const progress = node.kind === 'ACTIVITY' ? null : nodeProgress(node);
 
   return (
     <li className="grid gap-1">
@@ -145,6 +152,9 @@ function NodeRow({
               {label}
               {details && ` · ${details}`}
             </p>
+            {progress && progress.total > 0 && (
+              <ProgressBar progress={progress} label={`Avance de ${node.name}`} />
+            )}
           </div>
         </div>
         <div className="flex items-center gap-0.5">

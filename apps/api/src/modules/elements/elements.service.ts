@@ -1,9 +1,12 @@
 import {
   applyStatusDates,
   computeTotalHours,
+  summarizeActivities,
+  type ActivityStatus,
   type CatalogKind,
   type Element,
   type ElementFicha,
+  type ElementListItem,
   type ElementStatus,
 } from '@aprendizaje/shared';
 import type { Db, Tx } from '../../db/client.js';
@@ -145,14 +148,26 @@ export function fichaData(ficha: ElementFicha, previous: ElementStatus | null, t
   };
 }
 
-/** Los elementos del espacio, sin los de la papelera; los más recientes primero */
-export async function listElements(db: Db, workspaceId: string): Promise<Element[]> {
+/** Los elementos del espacio con su avance, sin los de la papelera; los más recientes primero */
+export async function listElements(db: Db, workspaceId: string): Promise<ElementListItem[]> {
   const rows = await db.element.findMany({
     where: { workspaceId, ...notDeleted },
     select: elementSelect,
     orderBy: { createdAt: 'desc' },
   });
-  return rows.map(toElement);
+  const activities = await db.elementNode.findMany({
+    where: { workspaceId, kind: 'ACTIVITY', ...notDeleted },
+    select: { elementId: true, activityStatus: true },
+  });
+  const statuses = new Map<string, ActivityStatus[]>();
+  for (const { elementId, activityStatus } of activities) {
+    if (activityStatus)
+      statuses.set(elementId, [...(statuses.get(elementId) ?? []), activityStatus]);
+  }
+  return rows.map((row) => ({
+    ...toElement(row),
+    progress: summarizeActivities(statuses.get(row.id) ?? []),
+  }));
 }
 
 export async function getElement(
