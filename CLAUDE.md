@@ -31,7 +31,7 @@ Detalle en [docs/backlog.md](docs/backlog.md) y [ADR-0002](docs/adr/ADR-0002-ele
 
 ## Stack (ADR-0001)
 
-El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17, `argon2` 0.45 (Argon2id, binario nativo), `@fastify/cookie`, TanStack Router y Query, shadcn/ui (copiado a mano, con Radix), `lucide-react`. Próximos (backlog): Playwright (TEC-05).
+El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17, `argon2` 0.45 (Argon2id, binario nativo), `@fastify/cookie`, TanStack Router y Query, shadcn/ui (copiado a mano, con Radix), `lucide-react`, `@fastify/static` (la API sirve la web en producción; ADR-0003). Próximos (backlog): Playwright (TEC-05).
 
 **No agregar dependencias fuera del ADR sin preguntar al usuario.**
 
@@ -65,6 +65,8 @@ apps/
   api/                Fastify — monolito modular
     src/app.ts          buildApp(): crea la instancia sin abrir puerto (testeable con app.inject)
     src/server.ts       arranque + cierre ordenado
+    src/web/web-app.ts  en producción la API también sirve la web compilada (TEC-04, ADR-0003): misma URL;
+                        las rutas de la web devuelven index.html y /api inexistente sigue en 404 JSON
     src/config/env.ts   variables de entorno validadas con Zod
     src/security.ts     helmet, CORS (CORS_ORIGINS), rate limit y HTTPS/HSTS en producción.
                         Rutas sensibles: `config: { rateLimit: authRateLimit }`
@@ -100,7 +102,8 @@ packages/
     src/schemas/element-filters.ts  filtros de la lista de elementos (HU-05), en la URL, con pruebas
     src/schemas/element-nodes.ts  árbol de un elemento: clases, reglas de 3 niveles (allowedChildKinds), actividad y buildNodeTree, con pruebas
     src/schemas/element-types.ts  tipos de elemento: campos de la ficha, nombres por omisión y etiquetas propias (HU-02), con pruebas
-docs/                 acta, ADRs, backlog, sprints (Prettier no los reformatea)
+docs/                 acta, ADRs, backlog, sprints, despliegue.md (Prettier no los reformatea)
+render.yaml           Blueprint de Render (TEC-04); primer despliegue, registros, límites y respaldos: docs/despliegue.md
 .github/              CI (ci.yml) y Dependabot
 docker-compose.yml    PostgreSQL local
 ```

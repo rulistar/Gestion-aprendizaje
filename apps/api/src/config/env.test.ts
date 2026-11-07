@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadEnv } from './env.js';
 
@@ -15,6 +16,12 @@ describe('loadEnv', () => {
       SESSION_IDLE_MINUTES: 60,
       TRUST_PROXY: false,
     });
+  });
+
+  it('WEB_DIST_DIR debe ser una ruta absoluta', () => {
+    expect(() => loadEnv({ DATABASE_URL, WEB_DIST_DIR: 'apps/web/dist' })).toThrow(/absoluta/);
+    const absolute = resolve('apps/web/dist');
+    expect(loadEnv({ DATABASE_URL, WEB_DIST_DIR: absolute }).WEB_DIST_DIR).toBe(absolute);
   });
 
   it('convierte CORS_ORIGINS en una lista y TRUST_PROXY en booleano', () => {

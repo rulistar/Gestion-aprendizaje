@@ -1,0 +1,50 @@
+# Blueprint de Render (TEC-04, ADR-0003): un servicio web gratuito con la API, que también
+# sirve la web compilada. La base de datos está en Neon; su cadena de conexión se captura en
+# Render al crear el Blueprint (sync: false), nunca en este archivo.
+services:
+  - type: web
+    name: gestion-aprendizaje
+    runtime: node
+    plan: free
+    # Junto a Neon (AWS us-east-1, N. Virginia). No se puede cambiar después de crear el servicio.
+    region: virginia
+    branch: main
+    # Despliega cada fusión a main, pero solo cuando los checks de CI de GitHub pasaron
+    autoDeployTrigger: checksPass
+    # --prod=false: con NODE_ENV=production, pnpm omitiría las herramientas de compilación.
+    # db:generate explícito: con la caché de Render, pnpm install puede no correr el postinstall
+    # y el build fallaría sin el cliente de Prisma (src/generated no está en Git).
+    # Las migraciones se aplican aquí porque el plan gratuito no tiene comando previo al despliegue.
+    buildCommand: >-
+      corepack enable &&
+      pnpm install --frozen-lockfile --prod=false &&
+      pnpm --filter @aprendizaje/api db:generate &&
+      pnpm build &&
+      pnpm --filter @aprendizaje/api db:deploy
+    startCommand: pnpm --filter @aprendizaje/api start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '24'
+      # Husky instala hooks de Git: en el servidor no hacen falta
+      - key: HUSKY
+        value: '0'
+      - key: API_HOST
+        value: 0.0.0.0
+      # Puerto por omisión de Render
+      - key: API_PORT
+        value: '10000'
+      - key: LOG_LEVEL
+        value: info
+      - key: TRUST_PROXY
+        value: 'true'
+      - key: SESSION_IDLE_MINUTES
+        value: '60'
+      # La URL pública del servicio, sin / final (Render puede agregarle un sufijo al nombre)
+      - key: CORS_ORIGINS
+        sync: false
+      # Neon → Connect, conexión directa (sin pooling), con ?sslmode=require
+      - key: DATABASE_URL
+        sync: false

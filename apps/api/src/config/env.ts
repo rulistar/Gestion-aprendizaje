@@ -1,3 +1,4 @@
+import { isAbsolute } from 'node:path';
 import { z } from 'zod';
 
 /** Variables de entorno que usa la API. Si alguna es inválida, la app no arranca. */
@@ -23,6 +24,8 @@ const envSchema = z.object({
   SESSION_IDLE_MINUTES: z.coerce.number().int().min(5).max(1440).default(60),
   // true solo detrás del proxy del hosting: así se confía en X-Forwarded-For / X-Forwarded-Proto
   TRUST_PROXY: z.stringbool().default(false),
+  // Carpeta de la web compilada; en producción, si no se da, se usa apps/web/dist (TEC-04)
+  WEB_DIST_DIR: z.string().refine(isAbsolute, 'Debe ser una ruta absoluta').optional(),
 });
 
 /** Un origen es protocolo + dominio + puerto, sin ruta ni barra final */

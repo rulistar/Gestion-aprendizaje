@@ -12,6 +12,7 @@ import { acceptInvitationRoutes } from './modules/invitations/accept.routes.js';
 import { invitationsRoutes } from './modules/invitations/invitations.routes.js';
 import { workspacesRoutes } from './modules/workspaces/workspaces.routes.js';
 import { registerSecurity, type SecurityOptions } from './security.js';
+import { registerWebApp } from './web/web-app.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -34,6 +35,8 @@ export interface BuildAppOptions extends FastifyServerOptions {
   db: Db;
   security?: SecurityOptions;
   sessionIdleMinutes?: number;
+  /** Carpeta de la web compilada (apps/web/dist); si se da, la API también sirve la web (TEC-04) */
+  webDist?: string;
 }
 
 /**
@@ -45,6 +48,7 @@ export function buildApp({
   db,
   security = {},
   sessionIdleMinutes = 60,
+  webDist,
   ...options
 }: BuildAppOptions) {
   const app = Fastify(options);
@@ -68,6 +72,8 @@ export function buildApp({
   void app.register(elementTypesRoutes, { prefix: '/api/v1' });
   void app.register(elementsRoutes, { prefix: '/api/v1' });
   void app.register(nodesRoutes, { prefix: '/api/v1' });
+
+  if (webDist) registerWebApp(app, webDist);
 
   return app;
 }
