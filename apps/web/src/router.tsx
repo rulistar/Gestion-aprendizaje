@@ -9,9 +9,11 @@ import {
 import { ApiError } from '@/lib/api';
 import { meQueryKey, meQueryOptions } from '@/lib/auth';
 import { catalogsQueryOptions } from '@/lib/catalogs';
+import { elementTypesQueryOptions } from '@/lib/element-types';
 import { workspaceQueryOptions } from '@/lib/workspaces';
 import { AppLayout } from '@/routes/app-layout';
 import { CatalogsPage } from '@/routes/catalogs-page';
+import { ElementTypesPage } from '@/routes/element-types-page';
 import { ErrorPage, NotFoundPage } from '@/routes/error-page';
 import { HomePage } from '@/routes/home-page';
 import { LoginPage } from '@/routes/login-page';
@@ -23,6 +25,7 @@ import { WorkspacePage } from '@/routes/workspace-page';
  *   /                 protegida: lleva al primer espacio; si no hay ninguno, muestra un aviso
  *   /w/$workspaceId   protegida: un espacio de trabajo
  *   /w/$workspaceId/catalogos  protegida: los catálogos del espacio (HU-01)
+ *   /w/$workspaceId/tipos      protegida: los tipos de elemento del espacio (HU-02)
  *   /login            pública; si ya hay sesión, redirige a /
  */
 
@@ -124,9 +127,21 @@ const catalogsRoute = createRoute({
   errorComponent: ErrorPage,
 });
 
+const elementTypesRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/w/$workspaceId/tipos',
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(elementTypesQueryOptions(params.workspaceId)),
+    ]),
+  component: ElementTypesPage,
+  errorComponent: ErrorPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  appRoute.addChildren([homeRoute, workspaceRoute, catalogsRoute]),
+  appRoute.addChildren([homeRoute, workspaceRoute, catalogsRoute, elementTypesRoute]),
 ]);
 
 export const router = createRouter({

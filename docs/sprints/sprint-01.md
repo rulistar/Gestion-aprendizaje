@@ -11,7 +11,7 @@
 | TEC-01 | Base de datos: Prisma + PostgreSQL, BD de pruebas, trazabilidad y borrado lógico | 5 | Terminado |
 | TEC-02 | Acceso reutilizado de Gestor de Proyectos: primer Admin, sesión, invitaciones, espacios con roles | 8 | Terminado |
 | TEC-03 | Web: enrutador, TanStack Query, componentes, menú y pantalla de inicio de sesión | 3 | Terminado |
-| HU-01 | Catálogos: plataforma, patrocinador, categoría, nivel y tipo de actividad | 5 | En revisión |
+| HU-01 | Catálogos: plataforma, patrocinador, categoría, nivel y tipo de actividad | 5 | Terminado |
 
 ## Notas
 

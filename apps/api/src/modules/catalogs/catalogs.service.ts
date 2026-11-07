@@ -6,9 +6,9 @@ import {
   type CreateCatalogItemInput,
   type UpdateCatalogItemInput,
 } from '@aprendizaje/shared';
-import { Prisma } from '../../generated/prisma/client.js';
 import type { Db, Tx } from '../../db/client.js';
 import { auditCreate, auditUpdate } from '../../db/audit.js';
+import { isUniqueViolation } from '../../db/errors.js';
 
 /** Ya hay otro valor activo con ese nombre en el catálogo (→ 409) */
 export class DuplicateCatalogItemError extends Error {}
@@ -32,11 +32,6 @@ function toCatalogItem({
   archivedAt: Date | null;
 }): CatalogItem {
   return { ...row, archived: archivedAt !== null };
-}
-
-/** Dos peticiones a la vez pueden pasar la revisión de nombre: el índice único es el último filtro */
-function isUniqueViolation(error: unknown) {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
 }
 
 /** Valores iniciales de un espacio nuevo; va en la misma transacción que crea el espacio */
