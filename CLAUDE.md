@@ -96,6 +96,8 @@ packages/
     src/schemas/permissions.ts  catálogo de permisos por rol (roleHasPermission)
     src/schemas/catalogs.ts     los cinco catálogos: tipos, etiquetas y valores iniciales
     src/schemas/elements.ts     la ficha (una sola, también para los nodos Curso de HU-04), horas totales y fechas reales automáticas, con pruebas
+    src/schemas/progress.ts     avance (ADR-0002 §4): summarizeActivities, elementProgress, nodeProgress, con pruebas
+    src/schemas/element-filters.ts  filtros de la lista de elementos (HU-05), en la URL, con pruebas
     src/schemas/element-nodes.ts  árbol de un elemento: clases, reglas de 3 niveles (allowedChildKinds), actividad y buildNodeTree, con pruebas
     src/schemas/element-types.ts  tipos de elemento: campos de la ficha, nombres por omisión y etiquetas propias (HU-02), con pruebas
 docs/                 acta, ADRs, backlog, sprints (Prettier no los reformatea)

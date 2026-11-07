@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { progressSchema } from './progress.js';
 
 /** Estados de la ficha: los mismos de los proyectos en Gestor de Proyectos, para sincronizarlos */
 export const ELEMENT_STATUSES = [
@@ -167,8 +168,12 @@ export const elementSchema = z.object({
 });
 export type Element = z.infer<typeof elementSchema>;
 
+/** Un renglón de la lista: la ficha más el avance que calcula la API (HU-05) */
+export const elementListItemSchema = elementSchema.extend({ progress: progressSchema });
+export type ElementListItem = z.infer<typeof elementListItemSchema>;
+
 /** Respuesta de GET /workspaces/:workspaceId/elements */
-export const elementListSchema = z.array(elementSchema);
+export const elementListSchema = z.array(elementListItemSchema);
 
 /** ?today= de POST y PUT: el día en la zona del usuario, que no siempre es el del servidor */
 export const elementTodayQuerySchema = z.object({ today: isoDate.optional() });

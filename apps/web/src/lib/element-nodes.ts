@@ -5,9 +5,9 @@ import {
   type MoveNodeInput,
   type UpdateNodeInput,
 } from '@aprendizaje/shared';
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { apiFetch } from './api';
-import { localToday } from './elements';
+import { elementsKey, localToday } from './elements';
 
 const nodesPath = (workspaceId: string, elementId: string) =>
   `/workspaces/${workspaceId}/elements/${elementId}/nodes`;
@@ -18,6 +18,10 @@ const nodesKey = (workspaceId: string, elementId: string) => [
   elementId,
   'nodes',
 ];
+
+/** Toda la familia de elementos: un cambio en el árbol también mueve el avance de la lista */
+const invalidate = (queryClient: QueryClient, workspaceId: string) =>
+  queryClient.invalidateQueries({ queryKey: elementsKey(workspaceId) });
 
 export const nodesQueryOptions = (workspaceId: string, elementId: string) =>
   queryOptions({
@@ -34,7 +38,7 @@ export function useCreateNode(workspaceId: string, elementId: string) {
         body: data,
         schema: elementNodeSchema,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: nodesKey(workspaceId, elementId) }),
+    onSuccess: () => invalidate(queryClient, workspaceId),
   });
 }
 
@@ -47,7 +51,7 @@ export function useUpdateNode(workspaceId: string, elementId: string, nodeId: st
         body: data,
         schema: elementNodeSchema,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: nodesKey(workspaceId, elementId) }),
+    onSuccess: () => invalidate(queryClient, workspaceId),
   });
 }
 
@@ -59,7 +63,7 @@ export function useMoveNode(workspaceId: string, elementId: string, nodeId: stri
         method: 'POST',
         body: data,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: nodesKey(workspaceId, elementId) }),
+    onSuccess: () => invalidate(queryClient, workspaceId),
   });
 }
 
@@ -68,6 +72,6 @@ export function useDeleteNode(workspaceId: string, elementId: string, nodeId: st
   return useMutation({
     mutationFn: () =>
       apiFetch(`${nodesPath(workspaceId, elementId)}/${nodeId}`, { method: 'DELETE' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: nodesKey(workspaceId, elementId) }),
+    onSuccess: () => invalidate(queryClient, workspaceId),
   });
 }

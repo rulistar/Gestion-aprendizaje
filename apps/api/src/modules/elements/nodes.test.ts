@@ -1,5 +1,6 @@
 import {
   catalogItemListSchema,
+  elementListSchema,
   elementNodeListSchema,
   elementNodeSchema,
   elementSchema,
@@ -488,5 +489,68 @@ describe('quitar', () => {
     expect((await put(node.id, { kind: 'CHAPTER', content: { name: 'X' } })).statusCode).toBe(404);
     expect((await move(node.id, 'up')).statusCode).toBe(404);
     expect((await remove(node.id)).statusCode).toBe(404);
+  });
+});
+
+describe('avance en la lista de elementos (HU-05)', () => {
+  const setStatus = (setupResult: Awaited<ReturnType<typeof setup>>, id: string, status: string) =>
+    setupResult.put(id, { kind: 'ACTIVITY', content: { name: 'Actividad', status } });
+  const progressOf = async (
+    { ana, ws }: Awaited<ReturnType<typeof setup>>,
+    elementId: string,
+    cookies: Cookies = ana.cookies,
+  ) => {
+    const response = await app.inject({ url: `/api/v1/workspaces/${ws.id}/elements`, cookies });
+    return elementListSchema.parse(response.json()).find((e) => e.id === elementId)!.progress;
+  };
+
+  it('sin actividades es 0 %', async () => {
+    const context = await setup();
+    await context.chapter('Solo un capítulo');
+
+    expect(await progressOf(context, context.elementId)).toEqual({ total: 0, done: 0, percent: 0 });
+  });
+
+  it('cuenta las actividades de todos los niveles; una cancelada no cuenta y una pausada sí', async () => {
+    const context = await setup();
+    const first = await context.chapter('Capítulo');
+    const second = await context.chapter('Subcapítulo', first.id);
+    const done = await context.activity('Hecha', second.id);
+    const paused = await context.activity('Pausada', first.id);
+    const cancelled = await context.activity('Cancelada');
+    await setStatus(context, done.id, 'DONE');
+    await setStatus(context, paused.id, 'PAUSED');
+    await setStatus(context, cancelled.id, 'CANCELLED');
+
+    expect(await progressOf(context, context.elementId)).toEqual({
+      total: 2,
+      done: 1,
+      percent: 50,
+    });
+  });
+
+  it('lo quitado deja de contar, también lo que contenía', async () => {
+    const context = await setup();
+    const first = await context.chapter('Capítulo');
+    const inside = await context.activity('Dentro', first.id);
+    const outside = await context.activity('Fuera');
+    await setStatus(context, inside.id, 'DONE');
+    await setStatus(context, outside.id, 'PENDING');
+    expect((await progressOf(context, context.elementId)).percent).toBe(50);
+
+    expect((await context.remove(first.id)).statusCode).toBe(204);
+
+    expect(await progressOf(context, context.elementId)).toEqual({ total: 1, done: 0, percent: 0 });
+  });
+
+  it('cada elemento cuenta solo sus actividades, y un Lector también ve el avance', async () => {
+    const context = await setup();
+    const other = await elementIn(context.ana.cookies, context.ws.id);
+    const activity = await context.activity('Del primero');
+    await setStatus(context, activity.id, 'DONE');
+    const reader = await context.withRole('lector@example.com', 'VIEWER');
+
+    expect((await progressOf(context, context.elementId, reader.cookies)).percent).toBe(100);
+    expect((await progressOf(context, other.elementId, reader.cookies)).total).toBe(0);
   });
 });

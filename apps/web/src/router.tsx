@@ -6,6 +6,7 @@ import {
   Outlet,
   redirect,
 } from '@tanstack/react-router';
+import { elementFiltersSchema } from '@aprendizaje/shared';
 import { ApiError } from '@/lib/api';
 import { meQueryKey, meQueryOptions } from '@/lib/auth';
 import { catalogsQueryOptions } from '@/lib/catalogs';
@@ -31,7 +32,7 @@ import { WorkspacePage } from '@/routes/workspace-page';
  *   /w/$workspaceId   protegida: un espacio de trabajo
  *   /w/$workspaceId/catalogos  protegida: los catálogos del espacio (HU-01)
  *   /w/$workspaceId/tipos      protegida: los tipos de elemento del espacio (HU-02)
- *   /w/$workspaceId/elementos[/nuevo|/$elementId]  protegidas: lista y ficha de los elementos (HU-03)
+ *   /w/$workspaceId/elementos[/nuevo|/$elementId]  protegidas: lista con filtros en la URL (HU-05) y ficha (HU-03)
  *   /login            pública; si ya hay sesión, redirige a /
  */
 
@@ -148,6 +149,7 @@ const elementTypesRoute = createRoute({
 const elementsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/w/$workspaceId/elementos',
+  validateSearch: elementFiltersSchema,
   loader: ({ context, params }) =>
     Promise.all([
       context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),

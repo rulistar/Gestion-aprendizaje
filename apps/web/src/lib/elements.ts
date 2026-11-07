@@ -3,7 +3,7 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 import { apiFetch } from './api';
 
 const elementsPath = (workspaceId: string) => `/workspaces/${workspaceId}/elements`;
-const elementsKey = (workspaceId: string) => ['workspaces', workspaceId, 'elements'];
+export const elementsKey = (workspaceId: string) => ['workspaces', workspaceId, 'elements'];
 
 /** El día en la zona del usuario: el servidor no la conoce y las fechas reales dependen de ella */
 export function localToday() {
