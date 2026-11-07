@@ -1,6 +1,6 @@
 // Modelo de datos base: mismas reglas que el ADR-0002 de Gestor de Proyectos (ver ADR-0001 de este repo).
 // Convenciones: UUID v7, tablas/columnas en snake_case, timestamptz, trazabilidad y borrado lógico.
-// TEC-01: User, Session, Workspace, Membership. TEC-02: Invitation. HU-01: CatalogItem. HU-02: ElementType. El resto se agrega con su historia.
+// TEC-01: User, Session, Workspace, Membership. TEC-02: Invitation. HU-01: CatalogItem. HU-02: ElementType. HU-03: Element. El resto se agrega con su historia.
 
 generator client {
   provider            = "prisma-client"
@@ -37,6 +37,16 @@ enum CatalogKind {
   ACTIVITY_TYPE
 
   @@map("catalog_kind")
+}
+
+enum ElementStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  PAUSED
+  CANCELLED
+  DONE
+
+  @@map("element_status")
 }
 
 enum MembershipRole {
@@ -88,6 +98,9 @@ model User {
   catalogItemsUpdated CatalogItem[] @relation("CatalogItemUpdatedBy")
   elementTypesCreated ElementType[] @relation("ElementTypeCreatedBy")
   elementTypesUpdated ElementType[] @relation("ElementTypeUpdatedBy")
+  elementsCreated Element[] @relation("ElementCreatedBy")
+  elementsUpdated Element[] @relation("ElementUpdatedBy")
+  elementsDeleted Element[] @relation("ElementDeletedBy")
 
   @@map("users")
 }
@@ -128,6 +141,7 @@ model Workspace {
   invitations Invitation[]
   catalogItems CatalogItem[]
   elementTypes ElementType[]
+  elements Element[]
 
   @@map("workspaces")
 }
@@ -205,6 +219,11 @@ model CatalogItem {
   createdBy   User?    @relation("CatalogItemCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedBy   User?    @relation("CatalogItemUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
 
+  elementsAsPlatform Element[] @relation("ElementPlatform")
+  elementsAsSponsor  Element[] @relation("ElementSponsor")
+  elementsAsCategory Element[] @relation("ElementCategory")
+  elementsAsLevel    Element[] @relation("ElementLevel")
+
   /// Sin duplicados entre los activos; los archivados no ocupan el nombre
   @@unique([workspaceId, kind, name], map: "catalog_items_workspace_kind_name_active_key", where: { archivedAt: null })
   @@index([workspaceId, kind])
@@ -230,8 +249,59 @@ model ElementType {
   createdBy   User?    @relation("ElementTypeCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedBy   User?    @relation("ElementTypeUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
 
+  elements Element[]
+
   /// Sin duplicados entre los activos; los archivados no ocupan el nombre
   @@unique([workspaceId, name], map: "element_types_workspace_name_active_key", where: { archivedAt: null })
   @@index([workspaceId])
   @@map("element_types")
+}
+
+/// Lo que se quiere aprender, con su ficha (ADR-0002 §1). Horas totales no se guardan: se calculan.
+/// El tipo y los catálogos usan NoAction, no Restrict: se revisa al final de la instrucción, y así
+/// un espacio que se borre en cascada no choca con el orden en que se borran sus tablas.
+model Element {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  typeId      String    @map("type_id") @db.Uuid
+  type        ElementType @relation(fields: [typeId], references: [id], onDelete: NoAction)
+  name        String
+
+  platformId String?      @map("platform_id") @db.Uuid
+  platform   CatalogItem? @relation("ElementPlatform", fields: [platformId], references: [id], onDelete: NoAction)
+  sponsorId  String?      @map("sponsor_id") @db.Uuid
+  sponsor    CatalogItem? @relation("ElementSponsor", fields: [sponsorId], references: [id], onDelete: NoAction)
+  categoryId String?      @map("category_id") @db.Uuid
+  category   CatalogItem? @relation("ElementCategory", fields: [categoryId], references: [id], onDelete: NoAction)
+  levelId    String?      @map("level_id") @db.Uuid
+  level      CatalogItem? @relation("ElementLevel", fields: [levelId], references: [id], onDelete: NoAction)
+
+  durationWeeks    Decimal? @map("duration_weeks") @db.Decimal(6, 2)
+  daysPerWeek      Int      @default(5) @map("days_per_week")
+  hoursPerDay      Decimal? @map("hours_per_day") @db.Decimal(4, 2)
+  /// Horas capturadas a mano: si hay, mandan sobre las calculadas
+  manualTotalHours Decimal? @map("manual_total_hours") @db.Decimal(8, 2)
+
+  estimatedStart DateTime? @map("estimated_start") @db.Date
+  estimatedEnd   DateTime? @map("estimated_end") @db.Date
+  actualStart    DateTime? @map("actual_start") @db.Date
+  actualEnd      DateTime? @map("actual_end") @db.Date
+
+  status ElementStatus @default(NOT_STARTED)
+  notes  String?
+
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdById String?   @map("created_by_id") @db.Uuid
+  updatedById String?   @map("updated_by_id") @db.Uuid
+  deletedById String?   @map("deleted_by_id") @db.Uuid
+  createdBy   User?     @relation("ElementCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?     @relation("ElementUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  deletedBy   User?     @relation("ElementDeletedBy", fields: [deletedById], references: [id], onDelete: Restrict)
+
+  @@index([workspaceId, createdAt])
+  @@index([typeId])
+  @@map("elements")
 }

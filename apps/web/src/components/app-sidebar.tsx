@@ -1,33 +1,8 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { BookOpen, Library, Shapes, type LucideIcon } from 'lucide-react';
+import { BookOpen, Library, Shapes } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import { AppLogo } from '@/components/app-logo';
 import { useCurrentUser } from '@/lib/auth';
-
-/** Opción que llega en una historia posterior: se ve, pero aún no se puede usar */
-function SoonItem({
-  icon: Icon,
-  label,
-  story,
-}: {
-  icon: LucideIcon;
-  label: string;
-  story: string;
-}) {
-  return (
-    <span
-      aria-disabled="true"
-      title={`Llega con ${story}`}
-      className="flex min-h-8 cursor-default items-center gap-2.5 rounded-lg px-3 text-sm font-medium opacity-60 [&_svg]:size-[18px] [&_svg]:shrink-0"
-    >
-      <Icon aria-hidden />
-      {label}
-      <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-        Pronto
-      </span>
-    </span>
-  );
-}
 
 /** Menú lateral: combo del espacio de trabajo y secciones del espacio elegido */
 export function AppSidebar() {
@@ -80,7 +55,15 @@ export function AppSidebar() {
 
       {current && (
         <div className="grid gap-0.5">
-          <SoonItem icon={BookOpen} label="Elementos" story="HU-05" />
+          <Link
+            to="/w/$workspaceId/elementos"
+            params={{ workspaceId: current.id }}
+            className="flex min-h-8 items-center gap-2.5 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-muted [&_svg]:size-[18px] [&_svg]:shrink-0"
+            activeProps={{ className: 'bg-accent text-accent-foreground', 'aria-current': 'page' }}
+          >
+            <BookOpen aria-hidden />
+            Elementos
+          </Link>
           {/* Catálogos y tipos: los ve todo miembro; solo el Admin los cambia (lo verifica la API) */}
           <Link
             to="/w/$workspaceId/catalogos"

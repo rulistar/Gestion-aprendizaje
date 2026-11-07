@@ -1,6 +1,6 @@
 # ADR-0002: Elementos de aprendizaje, su estructura y sus etiquetas
 
-- **Estado:** Propuesto (se acepta al planear el Sprint 2, antes de HU-02 a HU-05)
+- **Estado:** Aceptado (PO, 2026-11-06)
 - **Fecha:** 2026-11-05
 - **Contexto:** Decisiones del PO del 2026-11-05 para la primera funcionalidad: capturar cursos, lecturas u otros temas, con una estructura de hasta 3 niveles.
 

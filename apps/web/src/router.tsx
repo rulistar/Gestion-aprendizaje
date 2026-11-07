@@ -10,10 +10,14 @@ import { ApiError } from '@/lib/api';
 import { meQueryKey, meQueryOptions } from '@/lib/auth';
 import { catalogsQueryOptions } from '@/lib/catalogs';
 import { elementTypesQueryOptions } from '@/lib/element-types';
+import { elementQueryOptions, elementsQueryOptions } from '@/lib/elements';
 import { workspaceQueryOptions } from '@/lib/workspaces';
 import { AppLayout } from '@/routes/app-layout';
 import { CatalogsPage } from '@/routes/catalogs-page';
+import { ElementDetailPage } from '@/routes/element-detail-page';
+import { ElementNewPage } from '@/routes/element-new-page';
 import { ElementTypesPage } from '@/routes/element-types-page';
+import { ElementsPage } from '@/routes/elements-page';
 import { ErrorPage, NotFoundPage } from '@/routes/error-page';
 import { HomePage } from '@/routes/home-page';
 import { LoginPage } from '@/routes/login-page';
@@ -26,6 +30,7 @@ import { WorkspacePage } from '@/routes/workspace-page';
  *   /w/$workspaceId   protegida: un espacio de trabajo
  *   /w/$workspaceId/catalogos  protegida: los catálogos del espacio (HU-01)
  *   /w/$workspaceId/tipos      protegida: los tipos de elemento del espacio (HU-02)
+ *   /w/$workspaceId/elementos[/nuevo|/$elementId]  protegidas: lista y ficha de los elementos (HU-03)
  *   /login            pública; si ya hay sesión, redirige a /
  */
 
@@ -139,9 +144,59 @@ const elementTypesRoute = createRoute({
   errorComponent: ErrorPage,
 });
 
+const elementsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/w/$workspaceId/elementos',
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(elementsQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(elementTypesQueryOptions(params.workspaceId)),
+    ]),
+  component: ElementsPage,
+  errorComponent: ErrorPage,
+});
+
+const elementNewRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/w/$workspaceId/elementos/nuevo',
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(elementTypesQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(catalogsQueryOptions(params.workspaceId)),
+    ]),
+  component: ElementNewPage,
+  errorComponent: ErrorPage,
+});
+
+const elementDetailRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/w/$workspaceId/elementos/$elementId',
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(
+        elementQueryOptions(params.workspaceId, params.elementId),
+      ),
+      context.queryClient.ensureQueryData(elementTypesQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(catalogsQueryOptions(params.workspaceId)),
+    ]),
+  component: ElementDetailPage,
+  errorComponent: ErrorPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  appRoute.addChildren([homeRoute, workspaceRoute, catalogsRoute, elementTypesRoute]),
+  appRoute.addChildren([
+    homeRoute,
+    workspaceRoute,
+    catalogsRoute,
+    elementTypesRoute,
+    elementsRoute,
+    elementNewRoute,
+    elementDetailRoute,
+  ]),
 ]);
 
 export const router = createRouter({
