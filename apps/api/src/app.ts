@@ -3,6 +3,7 @@ import Fastify, { type FastifyServerOptions } from 'fastify';
 import type { Db } from './db/client.js';
 import type { WorkspaceAccess } from './modules/workspaces/access.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { catalogsRoutes } from './modules/catalogs/catalogs.routes.js';
 import { healthRoutes } from './modules/health/health.routes.js';
 import { acceptInvitationRoutes } from './modules/invitations/accept.routes.js';
 import { invitationsRoutes } from './modules/invitations/invitations.routes.js';
@@ -60,6 +61,7 @@ export function buildApp({
   void app.register(workspacesRoutes, { prefix: '/api/v1' });
   void app.register(invitationsRoutes, { prefix: '/api/v1' });
   void app.register(acceptInvitationRoutes, { prefix: '/api/v1' });
+  void app.register(catalogsRoutes, { prefix: '/api/v1' });
 
   return app;
 }

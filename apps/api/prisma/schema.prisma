@@ -1,6 +1,6 @@
 // Modelo de datos base: mismas reglas que el ADR-0002 de Gestor de Proyectos (ver ADR-0001 de este repo).
 // Convenciones: UUID v7, tablas/columnas en snake_case, timestamptz, trazabilidad y borrado lógico.
-// TEC-01: User, Session, Workspace, Membership. TEC-02: Invitation. El resto se agrega con su historia.
+// TEC-01: User, Session, Workspace, Membership. TEC-02: Invitation. HU-01: CatalogItem. El resto se agrega con su historia.
 
 generator client {
   provider            = "prisma-client"
@@ -27,6 +27,16 @@ enum UserStatus {
   DISABLED
 
   @@map("user_status")
+}
+
+enum CatalogKind {
+  PLATFORM
+  SPONSOR
+  CATEGORY
+  LEVEL
+  ACTIVITY_TYPE
+
+  @@map("catalog_kind")
 }
 
 enum MembershipRole {
@@ -74,6 +84,8 @@ model User {
   invitationsRevoked  Invitation[] @relation("InvitationRevokedBy")
   invitationsCreated  Invitation[] @relation("InvitationCreatedBy")
   invitationsUpdated  Invitation[] @relation("InvitationUpdatedBy")
+  catalogItemsCreated CatalogItem[] @relation("CatalogItemCreatedBy")
+  catalogItemsUpdated CatalogItem[] @relation("CatalogItemUpdatedBy")
 
   @@map("users")
 }
@@ -112,6 +124,7 @@ model Workspace {
 
   memberships Membership[]
   invitations Invitation[]
+  catalogItems CatalogItem[]
 
   @@map("workspaces")
 }
@@ -169,4 +182,28 @@ model Invitation {
 
   @@index([workspaceId, email])
   @@map("invitations")
+}
+
+/// Un valor de un catálogo del espacio. Los cinco catálogos comparten reglas: una sola tabla.
+/// No se borra: se archiva (deja de ofrecerse y lo que ya lo usa lo conserva).
+model CatalogItem {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  workspaceId String      @map("workspace_id") @db.Uuid
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  kind        CatalogKind
+  name        String
+  position    Int         @default(0)
+  archivedAt  DateTime?   @map("archived_at") @db.Timestamptz(3)
+
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?  @map("created_by_id") @db.Uuid
+  updatedById String?  @map("updated_by_id") @db.Uuid
+  createdBy   User?    @relation("CatalogItemCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?    @relation("CatalogItemUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  /// Sin duplicados entre los activos; los archivados no ocupan el nombre
+  @@unique([workspaceId, kind, name], map: "catalog_items_workspace_kind_name_active_key", where: { archivedAt: null })
+  @@index([workspaceId, kind])
+  @@map("catalog_items")
 }

@@ -8,8 +8,10 @@ import {
 } from '@tanstack/react-router';
 import { ApiError } from '@/lib/api';
 import { meQueryKey, meQueryOptions } from '@/lib/auth';
+import { catalogsQueryOptions } from '@/lib/catalogs';
 import { workspaceQueryOptions } from '@/lib/workspaces';
 import { AppLayout } from '@/routes/app-layout';
+import { CatalogsPage } from '@/routes/catalogs-page';
 import { ErrorPage, NotFoundPage } from '@/routes/error-page';
 import { HomePage } from '@/routes/home-page';
 import { LoginPage } from '@/routes/login-page';
@@ -20,6 +22,7 @@ import { WorkspacePage } from '@/routes/workspace-page';
  *
  *   /                 protegida: lleva al primer espacio; si no hay ninguno, muestra un aviso
  *   /w/$workspaceId   protegida: un espacio de trabajo
+ *   /w/$workspaceId/catalogos  protegida: los catálogos del espacio (HU-01)
  *   /login            pública; si ya hay sesión, redirige a /
  */
 
@@ -109,9 +112,21 @@ const workspaceRoute = createRoute({
   errorComponent: ErrorPage,
 });
 
+const catalogsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/w/$workspaceId/catalogos',
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(catalogsQueryOptions(params.workspaceId)),
+    ]),
+  component: CatalogsPage,
+  errorComponent: ErrorPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  appRoute.addChildren([homeRoute, workspaceRoute]),
+  appRoute.addChildren([homeRoute, workspaceRoute, catalogsRoute]),
 ]);
 
 export const router = createRouter({

@@ -35,6 +35,8 @@ Espacio de trabajo
 
 **Actividad:** nombre, tipo de actividad (catálogo; por omisión video/lección, lectura, ejercicio, quiz, proyecto, examen), duración en minutos, estado (Pendiente, En curso, Pausada, Hecha, Cancelada, como las tareas de Gestor de Proyectos) y fechas estimadas y reales.
 
+**Catálogos (HU-01):** una sola tabla (`catalog_items`) con su `kind`, porque los cinco comparten reglas. Nombre único entre los activos, sin distinguir mayúsculas. Un valor no se borra: se archiva, deja de ofrecerse y lo que ya lo usa lo conserva. Un espacio nuevo trae niveles y tipos de actividad; plataformas, patrocinadores y categorías empiezan vacíos.
+
 ### 2. Reglas del árbol
 - Hasta **3 niveles** debajo del elemento.
 - Nivel 1 y 2: Capítulo, Curso o Actividad. **Nivel 3: solo Actividad** (un capítulo ahí quedaría vacío).
