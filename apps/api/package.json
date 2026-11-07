@@ -19,6 +19,7 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "setup:admin": "tsx --env-file-if-exists=../../.env --conditions=@aprendizaje/source src/cli/setup-admin.ts",
+    "reset:password": "tsx --env-file-if-exists=../../.env --conditions=@aprendizaje/source src/cli/reset-password.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

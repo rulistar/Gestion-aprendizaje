@@ -11,7 +11,7 @@
 | HU-02 | Tipos de elemento con el nombre de cada campo | 5 | Terminado |
 | HU-03 | Capturar y editar la ficha de un elemento, con la duración calculada | 5 | Terminado |
 | HU-04 | Estructura de un elemento en hasta 3 niveles | 8 | Terminado |
-| HU-05 | Lista de elementos con su avance | 3 | En revisión |
+| HU-05 | Lista de elementos con su avance | 3 | Terminado |
 
 ## Notas
 

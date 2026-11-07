@@ -84,7 +84,7 @@ apps/
       catalogs/           GET /workspaces/:id/catalogs (miembros), POST y PATCH /:itemId (catalog.manage): renombrar y
                           archivar, nunca borrar; seedCatalogs carga los valores iniciales al crear un espacio
       setup/              createFirstAdmin: primer Admin + su workspace
-    src/cli/            setup-admin.ts → pnpm setup:admin; prompt.ts = pedir una contraseña sin mostrarla
+    src/cli/            setup-admin.ts → pnpm setup:admin; reset-password.ts → pnpm reset:password (HU-09); prompt.ts = pedir una contraseña sin mostrarla
     src/db/client.ts    createDb(): PrismaClient con el adaptador pg; se inyecta en buildApp({ db }) → app.db
     src/db/audit.ts     auditCreate/auditUpdate/auditSoftDelete/auditRestore + filtro notDeleted
     src/generated/      cliente de Prisma generado (ignorado por Git; se regenera en pnpm install)
@@ -130,6 +130,7 @@ pnpm db:migrate        # crea/aplica migraciones y regenera el cliente de Prisma
 pnpm db:studio         # explorador visual de la BD (Prisma Studio)
 pnpm db:reset          # ⚠️ borra y recrea la BD de desarrollo aplicando todas las migraciones
 pnpm setup:admin       # crea el primer Admin (interactivo; solo si no hay usuarios)
+pnpm reset:password    # restablece la contraseña de una cuenta por su correo (interactivo; HU-09)
 pnpm dev               # api (:3001) + web (:5174) en paralelo
 pnpm test              # Vitest en todos los paquetes (requiere pnpm db:up)
 pnpm lint              # ESLint   | pnpm lint:fix

@@ -44,6 +44,7 @@
 | HU-03 | 🔴 | Como usuario, quiero capturar y editar la ficha de un elemento (con la duración calculada), para registrar lo que quiero aprender | 5 | 2 |
 | HU-04 | 🔴 | Como usuario, quiero armar la estructura de un elemento en hasta 3 niveles (capítulos, cursos y actividades), para organizarlo como el contenido real | 8 | 2 |
 | HU-05 | 🔴 | Como usuario, quiero ver la lista de mis elementos con su avance, para saber cómo voy | 3 | 2 |
+| HU-09 | 🔴 | Como Admin, quiero restablecer una contraseña desde la terminal, para recuperar la cuenta si la olvido | 1 | 3 |
 | TEC-04 | 🔴 | Despliegue gratuito (verificar los límites de Render y Neon con dos apps) | 3 | 3 |
 | TEC-05 | 🟡 | Recorrido en el navegador con Playwright y su check en el CI | 3 | 3 |
 | TEC-06 | 🟡 | Medir la cobertura de pruebas en el CI (objetivo 3 del acta) | 2 | 3 |
@@ -58,6 +59,6 @@
 
 - ¿El elemento lleva **prioridad** (Alta, Media, Baja) como en el prototipo?
 - Lista inicial de **tipos de actividad** (propuesta: la del prototipo).
-- ¿Se agregan al backlog **mi perfil**, **restablecer contraseña** y **administrar usuarios** (HU-29, HU-30 y HU-54 de Gestor de Proyectos)? Quedaron fuera de TEC-02.
+- ¿Se agregan al backlog **mi perfil** y **administrar usuarios** (HU-29 y HU-30 de Gestor de Proyectos)? Quedaron fuera de TEC-02. Restablecer la contraseña desde la terminal ya es HU-09 (PO, 2026-11-07); el enlace desde la web sigue sin decidir.
 - ¿Se agrega una historia para las **pantallas de miembros e invitaciones**? La API ya existe (TEC-02), pero TEC-03 solo incluye el menú y el inicio de sesión.
 - Etiquetas por omisión de **Lectura** (por ejemplo, ¿páginas en vez de semanas?).

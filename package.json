@@ -23,6 +23,7 @@
     "db:studio": "pnpm --filter @aprendizaje/api db:studio",
     "db:reset": "pnpm --filter @aprendizaje/api db:reset",
     "setup:admin": "pnpm --filter @aprendizaje/api setup:admin",
+    "reset:password": "pnpm --filter @aprendizaje/api reset:password",
     "prepare": "husky"
   },
   "lint-staged": {
