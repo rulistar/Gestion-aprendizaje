@@ -47,6 +47,8 @@ Espacio de trabajo
 ### 3. Etiquetas por tipo de elemento
 Cada tipo define cómo se llama cada campo de la ficha (por ejemplo, en Lectura "Plataforma" puede mostrarse como "Editorial"). Los campos y sus reglas no cambian, solo su nombre visible: así las reglas de cálculo y la integración siguen funcionando. Es el mismo enfoque de tipos configurables de Gestor de Proyectos (su ADR-0004).
 
+Cada tipo guarda **solo sus nombres propios** (`labels`, JSONB); un campo sin nombre propio usa el de omisión. Dos campos de un tipo no pueden llamarse igual, y debe quedar al menos un tipo activo. Los tipos se archivan, como los catálogos (HU-02).
+
 ### 4. Avance
 - % de avance = actividades Hechas ÷ actividades no canceladas (0 % si no hay); Pausada cuenta como pendiente.
 - Capítulos y cursos calculan su avance con las actividades que contienen.

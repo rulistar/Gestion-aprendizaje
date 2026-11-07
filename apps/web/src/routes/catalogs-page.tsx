@@ -8,9 +8,10 @@ import {
 } from '@aprendizaje/shared';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import { Archive, ArchiveRestore, Check, Pencil, Plus, X } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { Archive, ArchiveRestore, Pencil, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { FieldError } from '@/components/field-error';
+import { RenameForm } from '@/components/rename-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -141,49 +142,22 @@ function CatalogRow({
 }) {
   const update = useUpdateCatalogItem(workspaceId);
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(item.name);
-
-  function handleRename(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmed = name.trim();
-    if (trimmed === '' || trimmed === item.name) {
-      setName(item.name);
-      setEditing(false);
-      return;
-    }
-    update.mutate({ itemId: item.id, name: trimmed }, { onSuccess: () => setEditing(false) });
-  }
 
   return (
     <li className="grid gap-1 px-3 py-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         {editing ? (
-          <form onSubmit={handleRename} className="flex items-center gap-1">
-            <Input
-              aria-label={`Nuevo nombre de ${item.name}`}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              maxLength={80}
-              autoFocus
-              className="h-8 w-52"
-            />
-            <Button type="submit" size="sm" variant="ghost" aria-label="Guardar nombre">
-              <Check aria-hidden />
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              aria-label="Cancelar"
-              onClick={() => {
-                setName(item.name);
-                update.reset();
-                setEditing(false);
-              }}
-            >
-              <X aria-hidden />
-            </Button>
-          </form>
+          <RenameForm
+            name={item.name}
+            maxLength={80}
+            onRename={(name) =>
+              update.mutate({ itemId: item.id, name }, { onSuccess: () => setEditing(false) })
+            }
+            onCancel={() => {
+              update.reset();
+              setEditing(false);
+            }}
+          />
         ) : (
           <div className="flex min-w-0 items-center gap-2">
             <span className={item.archived ? 'text-sm text-muted-foreground' : 'text-sm'}>
