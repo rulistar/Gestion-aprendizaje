@@ -31,7 +31,7 @@ Detalle en [docs/backlog.md](docs/backlog.md) y [ADR-0002](docs/adr/ADR-0002-ele
 
 ## Stack (ADR-0001)
 
-El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17, `argon2` 0.45 (Argon2id, binario nativo), `@fastify/cookie`, TanStack Router y Query, shadcn/ui (copiado a mano, con Radix), `lucide-react`, `@fastify/static` (la API sirve la web en producción; ADR-0003). Próximos (backlog): Playwright (TEC-05).
+El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17, `argon2` 0.45 (Argon2id, binario nativo), `@fastify/cookie`, TanStack Router y Query, shadcn/ui (copiado a mano, con Radix), `lucide-react`, `@fastify/static` (la API sirve la web en producción; ADR-0003), `@playwright/test` 1.64 (TEC-05: Edge instalado en local, Chromium en el CI).
 
 **No agregar dependencias fuera del ADR sin preguntar al usuario.**
 
@@ -90,9 +90,13 @@ apps/
     src/db/client.ts    createDb(): PrismaClient con el adaptador pg; se inyecta en buildApp({ db }) → app.db
     src/db/audit.ts     auditCreate/auditUpdate/auditSoftDelete/auditRestore + filtro notDeleted
     src/generated/      cliente de Prisma generado (ignorado por Git; se regenera en pnpm install)
-    src/test/           BD de pruebas: global-setup (crea + migra), test-db (createTestDb, resetDb)
+    src/test/           BD de pruebas: global-setup (crea + migra), test-db (createTestDb, resetDb).
+                        e2e-server.ts = servidor de Playwright (pnpm e2e:serve): BD <DATABASE_URL>_e2e vacía en cada
+                        corrida, primer Admin con contraseña de un solo uso, sirve la web compilada en :3101
     prisma/             schema.prisma + migrations/ (versionadas en Git)
     prisma.config.ts    configuración de Prisma 7 (carga el .env de la raíz)
+  e2e/                Playwright (TEC-05): playwright.config.ts (arranca e2e-server; en local channel msedge
+                        porque Smart App Control bloquea navegadores descargados) y tests/*.spec.ts
 packages/
   shared/             esquemas Zod + tipos (z.infer) usados por web y api
     src/schemas/permissions.ts  catálogo de permisos por rol (roleHasPermission)
@@ -136,6 +140,7 @@ pnpm setup:admin       # crea el primer Admin (interactivo; solo si no hay usuar
 pnpm reset:password    # restablece la contraseña de una cuenta por su correo (interactivo; HU-09)
 pnpm dev               # api (:3001) + web (:5174) en paralelo
 pnpm test              # Vitest en todos los paquetes (requiere pnpm db:up)
+pnpm test:e2e          # compila la web y recorre la app en Edge con Playwright (requiere pnpm db:up)
 pnpm lint              # ESLint   | pnpm lint:fix
 pnpm format            # Prettier | pnpm format:check
 pnpm typecheck         # tsc --noEmit en todos los paquetes
@@ -153,7 +158,7 @@ Antes de dar una tarea por terminada: `pnpm format:check && pnpm lint && pnpm ty
 5. **Autenticación**: sesiones en cookie `HttpOnly` + `Secure` + `SameSite`; contraseñas con Argon2. Nunca tokens en `localStorage`.
 6. Al exponer la API: helmet, CORS restringido, rate limiting.
 7. No registrar en logs contraseñas, tokens, cookies ni datos personales.
-8. `main` protegida: todo cambio entra por Pull Request con CI en verde.
+8. `main` protegida: todo cambio entra por Pull Request con CI en verde (lint, tipos, pruebas, `pnpm audit` sin altas/críticas, gitleaks sin hallazgos y el recorrido de Playwright).
 9. No desactivar hooks (`--no-verify`) ni reglas de lint/TS para "hacer pasar" algo; corregir la causa.
 10. Revisar qué hace una dependencia nueva antes de proponerla.
 
