@@ -5,6 +5,9 @@ node_modules/
 dist/
 build/
 coverage/
+# Resultados de Playwright (TEC-05)
+test-results/
+playwright-report/
 .vite/
 *.tsbuildinfo
 

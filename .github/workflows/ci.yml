@@ -64,6 +64,47 @@ jobs:
       - name: Build
         run: pnpm build
 
+  e2e:
+    name: Pruebas en el navegador (Playwright)
+    runs-on: ubuntu-latest
+    # Misma BD efímera que el job de pruebas; el servidor de pruebas crea y migra aprendizaje_e2e.
+    # Credenciales de un solo uso, sin valor fuera de este contenedor efímero.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: aprendizaje
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d aprendizaje"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/aprendizaje
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar dependencias (exactamente las del lockfile)
+        run: pnpm install --frozen-lockfile
+
+      # En el CI, el Chromium de Playwright (en la PC del PO se usa el Edge instalado)
+      - name: Instalar el navegador
+        run: pnpm --filter @aprendizaje/e2e exec playwright install --with-deps chromium
+
+      - name: Recorrido en el navegador
+        run: pnpm test:e2e
+
   audit:
     name: Auditoría de dependencias
     runs-on: ubuntu-latest
