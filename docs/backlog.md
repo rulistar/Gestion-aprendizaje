@@ -16,7 +16,7 @@
 |---|---|
 | Nombre | **Gestor de Aprendizaje** (antes "Gestor de cursos"): más genérico, para cursos, lecturas u otros temas. |
 | Ecosistema | Tres desarrollos **separados e integrados**, cada uno con su función: Gestor de Proyectos, Gestor de Aprendizaje y Lexika (idiomas). Cada uno con su repo, BD y despliegue. |
-| Sincronización | Gestor de Proyectos recibe el **avance**, las **fechas** y el **estado**, sincronizados. |
+| Sincronización | Gestor de Proyectos recibe el **avance**, las **fechas** y el **estado**, sincronizados. Solo de Aprendizaje a Proyectos, con la estructura completa y envío automático ([ADR-0004](adr/ADR-0004-integracion-gestor-proyectos.md), PO 2026-11-08). |
 | Módulos | El Gestor de Aprendizaje crece por módulos; el primero es la captura de elementos. |
 | Usuarios | Como Gestor de Proyectos: invitación, espacios y roles. |
 | Estructura | Hasta **3 niveles**: Capítulo, Curso (misma ficha que el elemento) o Actividad. Diseño en [ADR-0002](adr/ADR-0002-elementos-de-aprendizaje.md). |
@@ -48,8 +48,9 @@
 | TEC-04 | 🔴 | Despliegue gratuito (verificar los límites de Render y Neon con dos apps) | 3 | 3 |
 | TEC-05 | 🟡 | Recorrido en el navegador con Playwright y su check en el CI | 3 | 3 |
 | TEC-06 | 🟡 | Medir la cobertura de pruebas en el CI (objetivo 3 del acta) | 2 | 3 |
-| INT-01 | 🔴 | ADR de integración con Gestor de Proyectos: qué se sincroniza, en qué dirección, tokens de API y webhooks | 3 | 3 |
-| INT-02 | 🔴 | Sincronizar avance, fechas y estado con Gestor de Proyectos | 8 | 4 |
+| INT-01 | 🔴 | ADR de integración con Gestor de Proyectos: qué se sincroniza, en qué dirección, tokens de API y webhooks ([ADR-0004](adr/ADR-0004-integracion-gestor-proyectos.md)) | 3 | 3 |
+| INT-02 | 🔴 | Como usuario, quiero enviar un elemento a Gestor de Proyectos y que sus cambios lleguen solos, para no capturar dos veces (lado de Aprendizaje: bandeja de salida, vínculos y envío, probado contra un receptor de prueba) | 8 | 4 |
+| INT-04 | 🔴 | Conectar la sincronización con Gestor de Proyectos real y activarla en producción (requiere TEC-08 y HU-18 de Proyectos, en su v2) | 3 | — |
 | HU-06 | 🟡 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | — |
 | HU-07 | 🟡 | Papelera: borrado lógico restaurable; físico solo desde la papelera (Admin) | 3 | — |
 | HU-08 | 🟢 | Tablero por estado y gráficas (elementos por mes de término) | 5 | — |

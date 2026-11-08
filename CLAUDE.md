@@ -7,7 +7,7 @@ Contexto para sesiones de Claude Code. Leer antes de trabajar en el repo.
 Aplicación web para planear y dar seguimiento a lo que se quiere aprender (cursos, lecturas u otros temas): elementos con una estructura de hasta 3 niveles (capítulos, cursos, actividades) y su avance. Generaliza el prototipo "Gestor de cursos". Crece por **módulos**.
 
 - **Ecosistema de tres apps separadas e integradas** (cada una con su repo, BD y despliegue, dueña de sus datos):
-  - **Gestor de Proyectos** (`D:\Pr-IA\Gestion-Proyectos`, en producción): recibe de esta app el avance, las fechas y el estado (sincronizados).
+  - **Gestor de Proyectos** (`D:\Pr-IA\Gestion-Proyectos`, en producción): recibe de esta app el avance, las fechas y el estado (sincronizados): solo en esa dirección, con la estructura completa y envío automático ([ADR-0004](docs/adr/ADR-0004-integracion-gestor-proyectos.md)).
   - **Gestor de Aprendizaje** (este repo).
   - **Lexika** (futuro): idiomas; se integra con esta app.
 - **Mantener la compatibilidad con Gestor de Proyectos**: mismas convenciones (UUID v7, trazabilidad, borrado lógico, fechas `AAAA-MM-DD`, estados) y mismo stack. Ante la duda, revisar su `CLAUDE.md` y sus ADRs, y reutilizar su código probado (sesiones, invitaciones, seguridad).
