@@ -23,7 +23,7 @@ Construir una aplicación web para planear y dar seguimiento a lo que se quiere 
 1. Primera funcionalidad (capturar elementos de aprendizaje con su estructura de 3 niveles) en producción gratuita al cierre del Sprint 2.
 2. 0 vulnerabilidades críticas/altas en dependencias en cada release (escaneo automático).
 3. Cobertura de pruebas ≥ 70 % en la lógica de negocio, **medida** en el CI (lección aprendida de Gestor de Proyectos, donde no se midió).
-4. Sincronización con Gestor de Proyectos (avance, fechas y estado) funcionando antes del cierre del Sprint 4.
+4. Sincronización con Gestor de Proyectos (avance, fechas y estado): el lado de Gestor de Aprendizaje al cierre del Sprint 4, y de punta a punta cuando Gestor de Proyectos tenga lo necesario para recibirla, en su v2 (decisión del PO, 2026-11-08; [ADR-0004](adr/ADR-0004-integracion-gestor-proyectos.md)). Antes decía: "funcionando antes del cierre del Sprint 4"; cambió para respetar el periodo de uso real de Gestor de Proyectos.
 
 ## 3. Alcance
 **Incluye (primer incremento):**
