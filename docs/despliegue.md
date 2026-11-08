@@ -1,6 +1,6 @@
 # Despliegue (TEC-04, ADR-0003)
 
-**Producción:** todavía sin publicar; al crear el servicio, anota aquí su URL.
+**Producción:** <https://gestion-aprendizaje.onrender.com> (publicada el 2026-11-08)
 
 La aplicación corre en **Render** (un servicio web gratuito que sirve la API y la web) con la base de datos en **Neon**, igual que Gestor de Proyectos pero con servicio y base de datos propios. Este documento explica el primer despliegue, cómo desplegar cambios, ver los registros y respaldar la base de datos.
 
@@ -13,15 +13,19 @@ Ya tienes cuentas en Neon y en Render por Gestor de Proyectos: usa las mismas.
 ### Neon (base de datos)
 
 1. Crea un proyecto **nuevo**: nombre `gestion-aprendizaje`, **PostgreSQL 17**, región **AWS US East 1 (N. Virginia)**. No uses el de Gestor de Proyectos: cada app es dueña de sus datos.
-2. En **Connect**, desactiva **Connection pooling** y copia la cadena (`postgresql://…neon.tech/neondb?sslmode=require`). Esa es la `DATABASE_URL` de producción.
+2. En **Connect**, deja la rama por omisión (Neon la llama `production`), desactiva **Connection pooling** y copia la cadena (`postgresql://…neon.tech/neondb?sslmode=require`). Esa es la `DATABASE_URL` de producción. Si el host dice `-pooler`, el pooling sigue activo.
+
+> Al usar la cadena, `pg` avisa que `sslmode=require` cambiará de significado en su próxima versión. Es solo un aviso: hoy la conexión va cifrada y verifica el certificado de Neon.
 
 ### Render (aplicación)
+
+Entra con el botón **GitHub**, no con correo y contraseña, y usa el workspace donde está `gestion-proyectos`.
 
 1. **New → Blueprint** y elige el repositorio `Gestion-aprendizaje`. Si no aparece en la lista, dale acceso a Render desde su integración con GitHub.
 2. Render lee [`render.yaml`](../render.yaml) y pide dos valores:
    - `DATABASE_URL`: la cadena de Neon del paso anterior.
    - `CORS_ORIGINS`: la URL que tendrá el servicio, sin `/` al final (`https://gestion-aprendizaje.onrender.com`). Render puede agregarle un sufijo al nombre; si la que asigna es otra, corrígela en **Environment** y vuelve a desplegar.
-3. **Apply**. El primer build instala, compila, aplica las migraciones en Neon y arranca. Tarda unos minutos.
+3. Confirma la creación (en la versión actual de Render, la acción se llama **Create web service gestion-aprendizaje**). El primer build instala, compila, aplica las migraciones en Neon y arranca. Tarda unos minutos.
 4. Abre la URL: debe cargar el inicio de sesión con el candado de HTTPS.
 
 ### Primer Admin
