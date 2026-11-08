@@ -58,8 +58,14 @@ jobs:
       - name: Tipos (TypeScript)
         run: pnpm typecheck
 
-      - name: Pruebas (Vitest)
-        run: pnpm test
+      # Con cobertura (TEC-06): falla si la lógica de negocio baja del 70 % (objetivo 3 del acta)
+      - name: Pruebas y cobertura (Vitest)
+        run: pnpm test:coverage
+
+      # Tabla de cobertura en el resumen del job, aunque las pruebas hayan fallado
+      - name: Resumen de cobertura
+        if: ${{ !cancelled() }}
+        run: node scripts/coverage-summary.js
 
       - name: Build
         run: pnpm build

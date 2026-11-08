@@ -31,7 +31,7 @@ Detalle en [docs/backlog.md](docs/backlog.md) y [ADR-0002](docs/adr/ADR-0002-ele
 
 ## Stack (ADR-0001)
 
-El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17, `argon2` 0.45 (Argon2id, binario nativo), `@fastify/cookie`, TanStack Router y Query, shadcn/ui (copiado a mano, con Radix), `lucide-react`, `@fastify/static` (la API sirve la web en producción; ADR-0003), `@playwright/test` 1.64 (TEC-05: Edge instalado en local, Chromium en el CI).
+El mismo de Gestor de Proyectos. Hoy instalado: pnpm 12 + Node 24, React 19 + Vite 7 + Tailwind 4, Fastify 5, Zod 4, Vitest, ESLint/Prettier/Husky, `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Prisma 7.10 (`@prisma/adapter-pg` + `pg`) + PostgreSQL 17, `argon2` 0.45 (Argon2id, binario nativo), `@fastify/cookie`, TanStack Router y Query, shadcn/ui (copiado a mano, con Radix), `lucide-react`, `@fastify/static` (la API sirve la web en producción; ADR-0003), `@playwright/test` 1.64 (TEC-05: Edge instalado en local, Chromium en el CI), `@vitest/coverage-v8` (cobertura, TEC-06; misma versión que `vitest`: subirlos juntos).
 
 **No agregar dependencias fuera del ADR sin preguntar al usuario.**
 
@@ -124,6 +124,7 @@ docker-compose.yml    PostgreSQL local
 - **Rutas que exigen sesión**: `{ preHandler: requireAuth }` (de `modules/auth/session.ts`); el usuario queda en `request.auth.userId`. Sin sesión válida → 401.
 - **Rutas de un workspace** (`/workspaces/:workspaceId/...`): después de `requireAuth`, `{ preHandler: requirePermission('element.create') }` (de `modules/workspaces/access.ts`). No miembro o ID inválido → 404 (no revela que existe); rol sin permiso → 403. Toda consulta filtra también por `workspaceId`.
 - **Las pruebas de la API necesitan PostgreSQL** (`pnpm db:up`). Usan una BD aparte, `<DATABASE_URL>_test` (o `TEST_DATABASE_URL`), que `global-setup.ts` crea y migra sola; se niegan a correr contra una BD que no termine en `_test`. Se ejecutan en serie y cada archivo limpia con `resetDb()`. Toda tabla nueva se agrega al TRUNCATE de `test-db.ts`.
+- **Cobertura (TEC-06)**: el CI corre `pnpm test:coverage` y falla si `packages/shared` o la API bajan del 70 % en líneas, sentencias, funciones o ramas (objetivo 3 del acta). La tabla queda en el resumen del job (`scripts/coverage-summary.js`). Lo nuevo llega con sus pruebas; no se baja el umbral para hacer pasar algo.
 - **Prisma**: toda tabla nueva lleva UUID v7 (`@default(uuid(7)) @db.Uuid`), `@@map`/`@map` en snake_case, `@db.Timestamptz(3)` y campos de trazabilidad con relaciones a `User`. Toda consulta normal incluye `notDeleted`. Índices únicos que deben ignorar la papelera: `@@unique([...], where: { deletedAt: null })`.
 - Cambiar el esquema → `pnpm db:migrate` (crea la migración con un nombre descriptivo) → incluir la carpeta de la migración en el commit. Nunca editar una migración ya fusionada en `main`.
 
@@ -140,6 +141,7 @@ pnpm setup:admin       # crea el primer Admin (interactivo; solo si no hay usuar
 pnpm reset:password    # restablece la contraseña de una cuenta por su correo (interactivo; HU-09)
 pnpm dev               # api (:3001) + web (:5174) en paralelo
 pnpm test              # Vitest en todos los paquetes (requiere pnpm db:up)
+pnpm test:coverage     # lo mismo, con cobertura; falla si shared o la API bajan del 70 % (TEC-06)
 pnpm test:e2e          # compila la web y recorre la app en Edge con Playwright (requiere pnpm db:up)
 pnpm lint              # ESLint   | pnpm lint:fix
 pnpm format            # Prettier | pnpm format:check

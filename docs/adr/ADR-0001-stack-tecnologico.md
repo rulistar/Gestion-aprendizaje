@@ -17,7 +17,7 @@
 | Backend | Fastify 5 + TypeScript, monolito modular |
 | Validación | Zod 4 compartido en `packages/shared` |
 | Base de datos | PostgreSQL 17 (Docker Compose en local) + Prisma 7 |
-| Pruebas | Vitest (unitarias + integración contra PostgreSQL real) y Playwright |
+| Pruebas | Vitest (unitarias + integración contra PostgreSQL real) y Playwright; cobertura con `@vitest/coverage-v8` (TEC-06, aprobado por el PO el 2026-11-08) |
 | Calidad | ESLint + typescript-eslint, Prettier, Husky + lint-staged |
 | CI | GitHub Actions + gitleaks + pnpm audit + Dependabot |
 | Seguridad | `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, Argon2id, sesiones en cookie HttpOnly |

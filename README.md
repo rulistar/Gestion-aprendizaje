@@ -25,6 +25,7 @@ Abre http://localhost:5174 e inicia sesión con el Admin que creaste.
 
 ```bash
 pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
+pnpm test:coverage     # pruebas con cobertura (mínimo 70 %)
 pnpm test:e2e          # recorrido en el navegador (Edge) con Playwright
 ```
 

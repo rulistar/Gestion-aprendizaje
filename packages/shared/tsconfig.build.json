@@ -1,5 +1,9 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src"
+  },
+  "include": ["src"],
   // Las pruebas no van al dist que usa la API en producción
   "exclude": ["src/**/*.test.ts"]
 }
