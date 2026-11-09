@@ -1,7 +1,7 @@
 # Product Backlog
 
 > Lista priorizada de todo lo que el producto debe hacer. La ordena el **Product Owner**. Nada entra al desarrollo sin estar aquí.
-> Última actualización: 2026-11-08 (cierre del Sprint 4: HU-07 e INT-02 terminadas).
+> Última actualización: 2026-11-08 (cierre del Sprint 4 y decisiones del PO: HU-10 a HU-15).
 
 ## Cómo leer este documento
 
@@ -25,6 +25,9 @@
 | Fechas reales | Automáticas al cambiar el estado y **editables**. |
 | Catálogos | Plataforma, patrocinador, categoría y nivel son **catálogos editables**. |
 | Seguridad | Prevalecen las medidas de seguridad de Gestor de Proyectos. Producción gratuita. |
+| Prioridad | Cada elemento lleva prioridad **Alta, Media o Baja**, como el prototipo, y viaja a la prioridad del proyecto en Gestor de Proyectos (PO, 2026-11-08). |
+| Ficha de Lectura | Nombre del libro, autor, editorial, número de páginas, fechas estimadas y reales, horas estimadas y reales, y género. **Autor** y **Género** son catálogos propios. **Horas reales** es para todos los tipos. **Cada tipo elige qué campos muestra** (PO, 2026-11-08). |
+| Usuarios en la web | Sí a las pantallas de **miembros e invitaciones**, a **mi perfil** y a **administrar usuarios** (PO, 2026-11-08). |
 
 ## Sprint 0 — cimientos (en curso)
 
@@ -54,12 +57,16 @@
 | HU-06 | 🟡 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | — |
 | HU-07 | 🟡 | Papelera: borrado lógico restaurable; físico solo desde la papelera (Admin) | 3 | 4 |
 | HU-08 | 🟢 | Tablero por estado y gráficas (elementos por mes de término) | 5 | — |
+| HU-10 | 🟡 | Como usuario, quiero darle prioridad (Alta, Media, Baja) a cada elemento y filtrar por ella, para saber qué estudiar primero (también llega a la prioridad del proyecto en Gestor de Proyectos) | 2 | — |
+| HU-11 | 🟡 | Como usuario, quiero registrar autor, género, número de páginas y horas reales, para que la ficha de un libro tenga sus datos y pueda comparar horas estimadas contra reales (Autor y Género: catálogos nuevos; horas reales: todos los tipos) | 5 | — |
+| HU-12 | 🟡 | Como Admin, quiero elegir qué campos muestra cada tipo de elemento, para que una Lectura no muestre lo que no usa (nivel, semanas, días por semana…). Incluye dejar Lectura como la pidió el PO, también en los espacios que ya existen | 3 | — |
+| HU-13 | 🟡 | Como Admin, quiero ver los miembros de un espacio, cambiar su rol o quitarlos, e invitar a alguien desde la web, para no usar la API a mano (la API ya existe: TEC-02) | 5 | — |
+| HU-14 | 🟡 | Como usuario, quiero cambiar mi nombre, mi correo y mi contraseña, para mantener mi cuenta al día (como HU-29 de Gestor de Proyectos) | 3 | — |
+| HU-15 | 🟡 | Como Admin del sistema, quiero ver las cuentas, cambiar un correo y desactivar o reactivar una cuenta, para administrar quién entra (como HU-30 de Gestor de Proyectos) | 3 | — |
 | INT-03 | 🟢 | Integración con Lexika (cuando exista) | — | — |
 
 ## Pendientes de definir (al escribir las historias)
 
-- ¿El elemento lleva **prioridad** (Alta, Media, Baja) como en el prototipo?
 - Lista inicial de **tipos de actividad** (propuesta: la del prototipo).
-- ¿Se agregan al backlog **mi perfil** y **administrar usuarios** (HU-29 y HU-30 de Gestor de Proyectos)? Quedaron fuera de TEC-02. Restablecer la contraseña desde la terminal ya es HU-09 (PO, 2026-11-07); el enlace desde la web sigue sin decidir.
-- ¿Se agrega una historia para las **pantallas de miembros e invitaciones**? La API ya existe (TEC-02), pero TEC-03 solo incluye el menú y el inicio de sesión.
-- Etiquetas por omisión de **Lectura** (por ejemplo, ¿páginas en vez de semanas?).
+- ¿Restablecer una contraseña con un **enlace desde la web** (como HU-54 de Gestor de Proyectos)? Hoy se hace desde la terminal (HU-09). Podría sumarse a HU-15.
+- ¿Los demás tipos (Curso, Otro) también ocultan campos? Se decide al hacer HU-12.
