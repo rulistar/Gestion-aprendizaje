@@ -13,6 +13,7 @@ import { catalogsQueryOptions } from '@/lib/catalogs';
 import { nodesQueryOptions } from '@/lib/element-nodes';
 import { elementTypesQueryOptions } from '@/lib/element-types';
 import { elementQueryOptions, elementsQueryOptions } from '@/lib/elements';
+import { trashQueryOptions } from '@/lib/trash';
 import { workspaceQueryOptions } from '@/lib/workspaces';
 import { AppLayout } from '@/routes/app-layout';
 import { CatalogsPage } from '@/routes/catalogs-page';
@@ -23,6 +24,7 @@ import { ElementsPage } from '@/routes/elements-page';
 import { ErrorPage, NotFoundPage } from '@/routes/error-page';
 import { HomePage } from '@/routes/home-page';
 import { LoginPage } from '@/routes/login-page';
+import { TrashPage } from '@/routes/trash-page';
 import { WorkspacePage } from '@/routes/workspace-page';
 
 /*
@@ -190,6 +192,18 @@ const elementDetailRoute = createRoute({
   errorComponent: ErrorPage,
 });
 
+const trashRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/w/$workspaceId/papelera',
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(trashQueryOptions(params.workspaceId)),
+    ]),
+  component: TrashPage,
+  errorComponent: ErrorPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   appRoute.addChildren([
@@ -200,6 +214,7 @@ const routeTree = rootRoute.addChildren([
     elementsRoute,
     elementNewRoute,
     elementDetailRoute,
+    trashRoute,
   ]),
 ]);
 

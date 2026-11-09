@@ -72,6 +72,10 @@ export function useDeleteNode(workspaceId: string, elementId: string, nodeId: st
   return useMutation({
     mutationFn: () =>
       apiFetch(`${nodesPath(workspaceId, elementId)}/${nodeId}`, { method: 'DELETE' }),
-    onSuccess: () => invalidate(queryClient, workspaceId),
+    onSuccess: () =>
+      Promise.all([
+        invalidate(queryClient, workspaceId),
+        queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'trash'] }),
+      ]),
   });
 }

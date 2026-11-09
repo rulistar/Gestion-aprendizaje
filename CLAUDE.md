@@ -78,6 +78,7 @@ apps/
       invitations/        GET/POST/DELETE /workspaces/:id/invitations, solo Admin; el token se devuelve una vez.
                           accept.*: públicas, POST /invitations/preview|register|accept
       elements/           fichas (HU-03): GET lista y /:elementId (element.read), POST (element.create), PUT (element.update),
+                          DELETE = a la papelera (element.delete, HU-07),
                           con ?today= (día del usuario) para las fechas reales; valida que el tipo y los catálogos sean del espacio
                           nodes.*: estructura (HU-04) bajo /elements/:elementId/nodes: GET (element.read); POST, PUT, POST /:nodeId/move
                           y DELETE con todo lo que contiene (element.update); reglas del árbol en shared
@@ -85,6 +86,9 @@ apps/
                           y archivar (queda al menos uno activo); seedElementTypes carga Curso, Lectura y Otro
       catalogs/           GET /workspaces/:id/catalogs (miembros), POST y PATCH /:itemId (catalog.manage): renombrar y
                           archivar, nunca borrar; seedCatalogs carga los valores iniciales al crear un espacio
+      trash/              papelera (HU-07): GET /workspaces/:id/trash, POST /trash/:kind/:id/restore (cada quien lo que pudo
+                          quitar: trashPermission en shared) y DELETE /trash/:kind/:id = borrar para siempre (trash.manage).
+                          Un nodo vuelve con lo que se fue con él (misma fecha de baja); lo quitado antes se queda
       setup/              createFirstAdmin: primer Admin + su workspace
     src/cli/            setup-admin.ts → pnpm setup:admin; reset-password.ts → pnpm reset:password (HU-09); prompt.ts = pedir una contraseña sin mostrarla
     src/db/client.ts    createDb(): PrismaClient con el adaptador pg; se inyecta en buildApp({ db }) → app.db
@@ -104,6 +108,7 @@ packages/
     src/schemas/elements.ts     la ficha (una sola, también para los nodos Curso de HU-04), horas totales y fechas reales automáticas, con pruebas
     src/schemas/progress.ts     avance (ADR-0002 §4): summarizeActivities, elementProgress, nodeProgress, con pruebas
     src/schemas/element-filters.ts  filtros de la lista de elementos (HU-05), en la URL, con pruebas
+    src/schemas/trash.ts        papelera (HU-07): trashItemSchema, trashPermission, visibleTrashKinds, con pruebas
     src/schemas/element-nodes.ts  árbol de un elemento: clases, reglas de 3 niveles (allowedChildKinds), actividad y buildNodeTree, con pruebas
     src/schemas/element-types.ts  tipos de elemento: campos de la ficha, nombres por omisión y etiquetas propias (HU-02), con pruebas
 docs/                 acta, ADRs, backlog, sprints, despliegue.md (Prettier no los reformatea)

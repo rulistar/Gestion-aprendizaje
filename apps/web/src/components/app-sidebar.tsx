@@ -1,5 +1,6 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { BookOpen, Library, Shapes } from 'lucide-react';
+import { visibleTrashKinds } from '@aprendizaje/shared';
+import { BookOpen, Library, Shapes, Trash2 } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import { AppLogo } from '@/components/app-logo';
 import { useCurrentUser } from '@/lib/auth';
@@ -83,6 +84,21 @@ export function AppSidebar() {
             <Shapes aria-hidden />
             Tipos de elemento
           </Link>
+          {/* La papelera, para quien puede quitar algo (lo verifica la API) */}
+          {visibleTrashKinds(current.role).length > 0 && (
+            <Link
+              to="/w/$workspaceId/papelera"
+              params={{ workspaceId: current.id }}
+              className="flex min-h-8 items-center gap-2.5 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-muted [&_svg]:size-[18px] [&_svg]:shrink-0"
+              activeProps={{
+                className: 'bg-accent text-accent-foreground',
+                'aria-current': 'page',
+              }}
+            >
+              <Trash2 aria-hidden />
+              Papelera
+            </Link>
+          )}
         </div>
       )}
     </nav>
