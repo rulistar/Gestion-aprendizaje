@@ -1,6 +1,6 @@
 // Modelo de datos base: mismas reglas que el ADR-0002 de Gestor de Proyectos (ver ADR-0001 de este repo).
 // Convenciones: UUID v7, tablas/columnas en snake_case, timestamptz, trazabilidad y borrado lógico.
-// TEC-01: User, Session, Workspace, Membership. TEC-02: Invitation. HU-01: CatalogItem. HU-02: ElementType. HU-03: Element. HU-04: ElementNode. El resto se agrega con su historia.
+// TEC-01: User, Session, Workspace, Membership. TEC-02: Invitation. HU-01: CatalogItem. HU-02: ElementType. HU-03: Element. HU-04: ElementNode. INT-02: SyncLink, SyncOutbox. El resto se agrega con su historia.
 
 generator client {
   provider            = "prisma-client"
@@ -65,6 +65,23 @@ enum ActivityStatus {
   CANCELLED
 
   @@map("activity_status")
+}
+
+/// Qué es en Gestor de Proyectos lo que se envía (ADR-0004 §1)
+enum SyncTarget {
+  PROJECT
+  PHASE
+  TASK
+
+  @@map("sync_target")
+}
+
+enum SyncOutboxStatus {
+  PENDING
+  /// 24 h sin poder enviarse: espera a que alguien lo reintente desde la ficha
+  FAILED
+
+  @@map("sync_outbox_status")
 }
 
 enum MembershipRole {
@@ -164,6 +181,8 @@ model Workspace {
   elementTypes ElementType[]
   elements Element[]
   elementNodes ElementNode[]
+  syncLinks    SyncLink[]
+  syncOutbox   SyncOutbox[]
 
   @@map("workspaces")
 }
@@ -319,6 +338,8 @@ model Element {
 
   status ElementStatus @default(NOT_STARTED)
   notes  String?
+  /// Se envía a Gestor de Proyectos y cada cambio llega solo (INT-02, ADR-0004)
+  syncEnabled Boolean @default(false) @map("sync_enabled")
 
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -398,4 +419,58 @@ model ElementNode {
   @@index([elementId, parentId, position])
   @@index([workspaceId])
   @@map("element_nodes")
+}
+
+/// Qué registro de Gestor de Proyectos corresponde a cada cosa enviada (ADR-0004 §3). Dato técnico:
+/// sin trazabilidad. Sin llave foránea al elemento ni al nodo: tras un borrado definitivo el vínculo
+/// sigue aquí y el envío quita el registro también en Proyectos.
+model SyncLink {
+  id          String     @id @default(uuid(7)) @db.Uuid
+  workspaceId String     @map("workspace_id") @db.Uuid
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  elementId   String     @map("element_id") @db.Uuid
+  /// El nodo; null = el elemento mismo (el proyecto)
+  nodeId      String?    @map("node_id") @db.Uuid
+  target      SyncTarget
+  /// ID en Proyectos, como texto: es de otra app
+  remoteId    String     @map("remote_id")
+  /// Huella (SHA-256) de lo último que se envió: si no cambió, no se vuelve a enviar
+  sentHash    String     @map("sent_hash")
+  sentAt      DateTime   @map("sent_at") @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  /// Un solo proyecto por elemento y un solo registro por nodo
+  @@unique([elementId], map: "sync_links_element_project_key", where: { nodeId: null })
+  @@unique([nodeId], map: "sync_links_node_key")
+  @@index([elementId])
+  @@map("sync_links")
+}
+
+/// Bandeja de salida (ADR-0004 §2): un renglón por elemento con cambios sin enviar. Se escribe en la
+/// misma transacción que el cambio y se borra al enviarlo. Dato técnico, sin llave foránea al
+/// elemento (como SyncLink).
+model SyncOutbox {
+  id            String           @id @default(uuid(7)) @db.Uuid
+  workspaceId   String           @map("workspace_id") @db.Uuid
+  workspace     Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  elementId     String           @unique @map("element_id") @db.Uuid
+  status        SyncOutboxStatus @default(PENDING)
+  /// Último cambio. Si cambia durante un envío, el renglón se queda para el siguiente
+  changedAt     DateTime         @map("changed_at") @db.Timestamptz(3)
+  /// Cuándo intentar: 30 s después del último cambio, o el siguiente reintento
+  nextAttemptAt DateTime         @map("next_attempt_at") @db.Timestamptz(3)
+  /// Intentos fallidos seguidos
+  attempts      Int              @default(0)
+  /// Desde cuándo falla: tras 24 h pasa a FAILED
+  failingSince  DateTime?        @map("failing_since") @db.Timestamptz(3)
+  /// Por qué falló, sin datos sensibles ("Proyectos respondió 503")
+  lastError     String?          @map("last_error")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status, nextAttemptAt])
+  @@map("sync_outbox")
 }

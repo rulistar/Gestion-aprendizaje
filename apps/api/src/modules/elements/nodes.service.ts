@@ -20,6 +20,7 @@ import {
   InvalidReferenceError,
   toElement,
 } from './elements.service.js';
+import { markChanged } from '../sync/outbox.js';
 
 /** El nodo no cabe en ese lugar del árbol, o se pidió cambiar su clase (→ 400) */
 export class InvalidStructureError extends Error {}
@@ -232,6 +233,7 @@ export async function createNode(
       },
       select: nodeSelect,
     });
+    await markChanged(tx, elementId);
     return toNode(row);
   });
 }
@@ -287,6 +289,7 @@ export async function updateNode(
       data: { ...content, ...auditUpdate(actorId) },
       select: nodeSelect,
     });
+    await markChanged(tx, elementId);
     return toNode(row);
   });
 }
@@ -327,6 +330,7 @@ export async function moveNode(
       where: { id: sibling.id },
       data: { position: node.position, ...auditUpdate(actorId) },
     });
+    await markChanged(tx, elementId);
     return true;
   });
 }
@@ -362,6 +366,7 @@ export async function deleteNode(
       where: { id: { in: ids } },
       data: auditSoftDelete(actorId),
     });
+    await markChanged(tx, elementId);
     return true;
   });
 }

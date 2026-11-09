@@ -12,6 +12,7 @@ import {
 import type { Db, Tx } from '../../db/client.js';
 import { auditCreate, auditSoftDelete, auditUpdate, notDeleted } from '../../db/audit.js';
 import { fromIsoDate, toIsoDate } from '../../db/dates.js';
+import { markChanged } from '../sync/outbox.js';
 
 /** El tipo o un valor de catálogo no sirve para esta ficha (→ 400) */
 export class InvalidReferenceError extends Error {}
@@ -209,11 +210,14 @@ export async function deleteElement(
   workspaceId: string,
   elementId: string,
 ): Promise<boolean> {
-  const { count } = await db.element.updateMany({
-    where: { id: elementId, workspaceId, ...notDeleted },
-    data: auditSoftDelete(actorId),
+  return db.$transaction(async (tx) => {
+    const { count } = await tx.element.updateMany({
+      where: { id: elementId, workspaceId, ...notDeleted },
+      data: auditSoftDelete(actorId),
+    });
+    if (count > 0) await markChanged(tx, elementId);
+    return count > 0;
   });
-  return count > 0;
 }
 
 /** Reemplaza la ficha completa. null si no es de ese espacio o está en la papelera (→ 404) */
@@ -245,6 +249,7 @@ export async function updateElement(
       data: { ...fichaData(ficha, previous.status, today), ...auditUpdate(actorId) },
       select: elementSelect,
     });
+    await markChanged(tx, elementId);
     return toElement(row);
   });
 }

@@ -81,6 +81,21 @@ Cada envío despierta a Proyectos y la deja encendida 15 min. Mientras estudias,
 
 Con este diseño, Proyectos **no** necesita la bandeja de salida ni los webhooks (TEC-09, TEC-10), ni HU-19 o HU-20: siguen en su backlog para cuando una integración lo pida (por ejemplo, Lexika o la otra dirección).
 
+## 7. Cómo quedó construido (INT-02, Sprint 4)
+
+Ajustes al diseño, encontrados al leer el contrato real de Proyectos:
+
+- **Fechas reales:** Proyectos no las recibe; las pone su sistema al cambiar el estado (su ADR-0004 §2.1). Se envían solo las **estimadas** (inicio y fin planeados). Las reales de Proyectos serán las del día en que llegó el cambio de estado.
+- **Motivo de Pausada o Cancelada:** Proyectos lo exige en las tareas; Aprendizaje no lo pide. Se envía "Desde Gestor de Aprendizaje".
+- **Límites:** nombres de proyecto y fase hasta 120 caracteres (en Aprendizaje, 200): se recortan con "…". Minutos estimados hasta 10 080: se topan.
+- **Ámbito:** el proyecto se crea como **personal** (HU-49 de Proyectos).
+- **Una edición en Proyectos se pisa entera:** las rutas PUT reemplazan el registro, así que los campos que Aprendizaje no envía (descripción, personas, responsable, origen) quedan vacíos en cada envío de ese registro. Lo que no cambió aquí no se reenvía (se guarda una huella SHA-256 de lo último enviado).
+- **Si lo borraron en Proyectos** (respuesta 404 al actualizar), se crea de nuevo. Si borraron el proyecto, se crea de nuevo con todo.
+- **Orden de las fases:** Proyectos solo sube o baja de una en una; cuando algo cambia de lugar, el envío lee las fases y las sube hasta su lugar. Las fases creadas a mano en Proyectos quedan al final.
+- **"Sincronizado"** es una columna del elemento (`sync_enabled`). `sync_links` y `sync_outbox` no tienen llave foránea al elemento ni al nodo: tras un borrado definitivo siguen ahí, y el envío quita el registro también en Proyectos.
+- **Al dejar de sincronizar** se olvidan los vínculos; si se vuelve a enviar, se crea **otro** proyecto. Cuando exista la referencia externa de HU-18, Proyectos podrá devolver el que ya existe.
+- **Un envío fallido** no se reintenta con cada edición: los reintentos siguen su calendario. Tras 24 h queda fallido, aunque siga habiendo cambios, hasta que alguien pulse Reintentar.
+
 ## Alternativas consideradas
 
 | Alternativa | Por qué no |
