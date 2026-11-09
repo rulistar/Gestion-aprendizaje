@@ -8,8 +8,8 @@
 
 | ID | Elemento | Puntos | Estado |
 |---|---|---|---|
-| HU-10 | Prioridad Alta, Media o Baja en cada elemento, con filtro; llega a la prioridad del proyecto en Gestor de Proyectos | 2 | En revisión |
-| HU-11 | Autor y Género (catálogos nuevos), Número de páginas y Horas reales (todos los tipos) | 5 | Pendiente |
+| HU-10 | Prioridad Alta, Media o Baja en cada elemento, con filtro; llega a la prioridad del proyecto en Gestor de Proyectos | 2 | Terminado |
+| HU-11 | Autor y Género (catálogos nuevos), Número de páginas y Horas reales (todos los tipos) | 5 | En revisión |
 | HU-12 | Cada tipo elige qué campos muestra; Lectura queda como la pidió el PO, también en los espacios que ya existen | 3 | Pendiente |
 | HU-13 | Miembros e invitaciones desde la web | 5 | Pendiente |
 | HU-14 | Mi perfil: nombre, correo y contraseña | 3 | Pendiente |
@@ -22,3 +22,4 @@
 - **Usuarios:** se toman como referencia HU-25, HU-29 y HU-30 de Gestor de Proyectos, con sus mismas reglas de seguridad: pedir la contraseña actual, cerrar las demás sesiones y no desactivarse a sí mismo.
 - **Por decidir al llegar:** si Curso y Otro también ocultan campos (HU-12), y si HU-15 incluye un enlace para restablecer la contraseña desde la web.
 - **HU-10:** la prioridad está en la ficha, así que también la tiene un Curso dentro de un elemento (comparten ficha). Por omisión es Media, también para lo que ya existía. La lista la muestra y se filtra por ella (en la URL, como los demás filtros). Su nombre se puede cambiar por tipo, como los demás campos. Viaja a la prioridad del proyecto en Gestor de Proyectos.
+- **HU-11:** Autor y Género son dos catálogos nuevos en Catálogos, y empiezan vacíos. Los cuatro campos nuevos están en la ficha de todos los tipos y en los Cursos dentro de un elemento, hasta que HU-12 permita ocultarlos por tipo. No viajan a Gestor de Proyectos, porque allá no tienen equivalente.

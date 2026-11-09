@@ -1,7 +1,15 @@
 import { z } from 'zod';
 
-/** Los cinco catálogos del espacio (ADR-0002): comparten reglas, por eso son una sola tabla */
-export const CATALOG_KINDS = ['PLATFORM', 'SPONSOR', 'CATEGORY', 'LEVEL', 'ACTIVITY_TYPE'] as const;
+/** Los catálogos del espacio (ADR-0002; Autor y Género, HU-11): comparten reglas, una sola tabla */
+export const CATALOG_KINDS = [
+  'PLATFORM',
+  'SPONSOR',
+  'CATEGORY',
+  'LEVEL',
+  'ACTIVITY_TYPE',
+  'AUTHOR',
+  'GENRE',
+] as const;
 export const catalogKindSchema = z.enum(CATALOG_KINDS);
 export type CatalogKind = z.infer<typeof catalogKindSchema>;
 
@@ -11,6 +19,8 @@ export const CATALOG_LABELS: Record<CatalogKind, string> = {
   CATEGORY: 'Categorías',
   LEVEL: 'Niveles',
   ACTIVITY_TYPE: 'Tipos de actividad',
+  AUTHOR: 'Autores',
+  GENRE: 'Géneros',
 };
 
 /** Valores que se cargan al crear un espacio; los demás catálogos empiezan vacíos */

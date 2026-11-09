@@ -84,6 +84,15 @@ export const elementFichaSchema = z
     sponsorId: catalogRef,
     categoryId: catalogRef,
     levelId: catalogRef,
+    authorId: catalogRef,
+    genreId: catalogRef,
+    pages: z
+      .number({ error: 'Escribe un número' })
+      .int('Debe ser un número entero')
+      .positive('Debe ser mayor que 0')
+      .max(100000, 'Máximo 100000')
+      .nullable()
+      .default(null),
     durationWeeks: positiveNumber(520),
     daysPerWeek: z
       .number({ error: 'Escribe un número' })
@@ -94,6 +103,13 @@ export const elementFichaSchema = z
     hoursPerDay: positiveNumber(24),
     /** Horas capturadas a mano: si hay, mandan sobre las calculadas */
     manualTotalHours: z
+      .number({ error: 'Escribe un número' })
+      .min(0, 'No puede ser negativo')
+      .max(100000, 'Máximo 100000')
+      .nullable()
+      .default(null),
+    /** Horas que de verdad llevó (HU-11), para compararlas con las estimadas */
+    actualHours: z
       .number({ error: 'Escribe un número' })
       .min(0, 'No puede ser negativo')
       .max(100000, 'Máximo 100000')
@@ -118,10 +134,14 @@ export const ELEMENT_FORM_FIELDS = [
   'sponsorId',
   'categoryId',
   'levelId',
+  'authorId',
+  'genreId',
+  'pages',
   'durationWeeks',
   'daysPerWeek',
   'hoursPerDay',
   'manualTotalHours',
+  'actualHours',
   'estimatedStart',
   'estimatedEnd',
   'actualStart',
@@ -136,6 +156,8 @@ const NUMERIC_FIELDS = new Set([
   'daysPerWeek',
   'hoursPerDay',
   'manualTotalHours',
+  'actualHours',
+  'pages',
   'durationMinutes',
 ]);
 /** Estos no significan "sin valor" en blanco: el esquema decide (obligatorio u omisión) */
@@ -165,12 +187,16 @@ export const elementSchema = z.object({
   sponsorId: z.uuid().nullable(),
   categoryId: z.uuid().nullable(),
   levelId: z.uuid().nullable(),
+  authorId: z.uuid().nullable(),
+  genreId: z.uuid().nullable(),
+  pages: z.number().int().nullable(),
   durationWeeks: z.number().nullable(),
   daysPerWeek: z.number().int(),
   hoursPerDay: z.number().nullable(),
   manualTotalHours: z.number().nullable(),
   /** Las capturadas o, si no hay, las calculadas; null si faltan datos para calcular */
   totalHours: z.number().nullable(),
+  actualHours: z.number().nullable(),
   estimatedStart: isoDate.nullable(),
   estimatedEnd: isoDate.nullable(),
   actualStart: isoDate.nullable(),

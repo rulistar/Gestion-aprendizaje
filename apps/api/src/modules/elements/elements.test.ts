@@ -198,6 +198,47 @@ describe('la ficha', () => {
     });
   });
 
+  it('guarda autor, género, páginas y horas reales de una lectura (HU-11)', async () => {
+    const { ana, ws, typeId } = await setup();
+    const authorId = await catalogItem(ana.cookies, ws.id, 'AUTHOR', 'Gabriel García Márquez');
+    const genreId = await catalogItem(ana.cookies, ws.id, 'GENRE', 'Novela');
+
+    const element = await createOk(ana.cookies, ws.id, {
+      typeId,
+      name: 'Cien años de soledad',
+      authorId,
+      genreId,
+      pages: 471,
+      manualTotalHours: 15,
+      actualHours: 18.5,
+    });
+    expect(element).toMatchObject({
+      authorId,
+      genreId,
+      pages: 471,
+      totalHours: 15,
+      actualHours: 18.5,
+    });
+
+    // Borrarlos deja los campos vacíos
+    const cleared = await put(ana.cookies, ws.id, element.id, { typeId, name: 'Cien años' });
+    expect(elementSchema.parse(cleared.json())).toMatchObject({
+      authorId: null,
+      genreId: null,
+      pages: null,
+      actualHours: null,
+    });
+  });
+
+  it('rechaza páginas o horas reales fuera de rango (HU-11)', async () => {
+    const { ana, ws, typeId } = await setup();
+    for (const wrong of [{ pages: 0 }, { pages: 2.5 }, { actualHours: -1 }]) {
+      expect((await post(ana.cookies, ws.id, { typeId, name: 'X', ...wrong })).statusCode).toBe(
+        400,
+      );
+    }
+  });
+
   it('las horas capturadas mandan, y al borrarlas vuelve el cálculo', async () => {
     const { ana, ws, typeId } = await setup();
     const hours = { typeId, name: 'SQL', durationWeeks: 4, daysPerWeek: 5, hoursPerDay: 2 };
@@ -288,6 +329,18 @@ describe('la ficha', () => {
 });
 
 describe('referencias', () => {
+  it('un género no sirve como autor, ni un autor como género (HU-11)', async () => {
+    const { ana, ws, typeId } = await setup();
+    const authorId = await catalogItem(ana.cookies, ws.id, 'AUTHOR', 'Borges');
+    const genreId = await catalogItem(ana.cookies, ws.id, 'GENRE', 'Cuento');
+
+    const asAuthor = await post(ana.cookies, ws.id, { typeId, name: 'X', authorId: genreId });
+    expect(asAuthor.statusCode).toBe(400);
+    expect(asAuthor.json()).toMatchObject({ message: 'El autor no está disponible' });
+    const asGenre = await post(ana.cookies, ws.id, { typeId, name: 'X', genreId: authorId });
+    expect(asGenre.json()).toMatchObject({ message: 'El género no está disponible' });
+  });
+
   it('rechaza un tipo o un catálogo de otro espacio', async () => {
     const { ana, ws, typeId } = await setup();
     const other = await createWorkspace(db, ana.user.id, { name: 'Otro' });

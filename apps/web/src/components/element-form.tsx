@@ -91,7 +91,7 @@ export function ElementForm({
   });
 
   function catalogField(
-    field: 'platformId' | 'sponsorId' | 'categoryId' | 'levelId',
+    field: 'platformId' | 'sponsorId' | 'categoryId' | 'levelId' | 'authorId' | 'genreId',
     kind: CatalogKind,
     label: string,
   ) {
@@ -164,6 +164,19 @@ export function ElementForm({
           {catalogField('sponsorId', 'SPONSOR', labels.sponsor)}
           {catalogField('categoryId', 'CATEGORY', labels.category)}
           {catalogField('levelId', 'LEVEL', labels.level)}
+          {catalogField('authorId', 'AUTHOR', labels.author)}
+          {catalogField('genreId', 'GENRE', labels.genre)}
+          <div className="grid gap-1.5">
+            <Label htmlFor={form.idOf('pages')}>{labels.pages}</Label>
+            <Input
+              {...form.field('pages')}
+              type="number"
+              min="1"
+              step="1"
+              defaultValue={element?.pages ?? ''}
+            />
+            <FieldError {...form.errorProps('pages')} />
+          </div>
           <div className="grid gap-1.5">
             <Label htmlFor={form.idOf('status')}>{labels.status}</Label>
             <Select {...form.field('status')} defaultValue={element?.status ?? 'NOT_STARTED'}>
@@ -242,6 +255,18 @@ export function ElementForm({
                 : `Calculadas: ${calculated} h. Si capturas otro valor, manda el tuyo.`}
             </p>
             <FieldError {...form.errorProps('manualTotalHours')} />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor={form.idOf('actualHours')}>{labels.actualHours}</Label>
+            <Input
+              {...form.field('actualHours')}
+              type="number"
+              min="0"
+              step="any"
+              defaultValue={element?.actualHours ?? ''}
+            />
+            <p className="text-xs text-muted-foreground">Las que de verdad te llevó.</p>
+            <FieldError {...form.errorProps('actualHours')} />
           </div>
         </Section>
 
