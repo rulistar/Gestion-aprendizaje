@@ -57,12 +57,12 @@
 | HU-06 | 🟡 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | — |
 | HU-07 | 🟡 | Papelera: borrado lógico restaurable; físico solo desde la papelera (Admin) | 3 | 4 |
 | HU-08 | 🟢 | Tablero por estado y gráficas (elementos por mes de término) | 5 | — |
-| HU-10 | 🟡 | Como usuario, quiero darle prioridad (Alta, Media, Baja) a cada elemento y filtrar por ella, para saber qué estudiar primero (también llega a la prioridad del proyecto en Gestor de Proyectos) | 2 | — |
-| HU-11 | 🟡 | Como usuario, quiero registrar autor, género, número de páginas y horas reales, para que la ficha de un libro tenga sus datos y pueda comparar horas estimadas contra reales (Autor y Género: catálogos nuevos; horas reales: todos los tipos) | 5 | — |
-| HU-12 | 🟡 | Como Admin, quiero elegir qué campos muestra cada tipo de elemento, para que una Lectura no muestre lo que no usa (nivel, semanas, días por semana…). Incluye dejar Lectura como la pidió el PO, también en los espacios que ya existen | 3 | — |
-| HU-13 | 🟡 | Como Admin, quiero ver los miembros de un espacio, cambiar su rol o quitarlos, e invitar a alguien desde la web, para no usar la API a mano (la API ya existe: TEC-02) | 5 | — |
-| HU-14 | 🟡 | Como usuario, quiero cambiar mi nombre, mi correo y mi contraseña, para mantener mi cuenta al día (como HU-29 de Gestor de Proyectos) | 3 | — |
-| HU-15 | 🟡 | Como Admin del sistema, quiero ver las cuentas, cambiar un correo y desactivar o reactivar una cuenta, para administrar quién entra (como HU-30 de Gestor de Proyectos) | 3 | — |
+| HU-10 | 🟡 | Como usuario, quiero darle prioridad (Alta, Media, Baja) a cada elemento y filtrar por ella, para saber qué estudiar primero (también llega a la prioridad del proyecto en Gestor de Proyectos) | 2 | 5 |
+| HU-11 | 🟡 | Como usuario, quiero registrar autor, género, número de páginas y horas reales, para que la ficha de un libro tenga sus datos y pueda comparar horas estimadas contra reales (Autor y Género: catálogos nuevos; horas reales: todos los tipos) | 5 | 5 |
+| HU-12 | 🟡 | Como Admin, quiero elegir qué campos muestra cada tipo de elemento, para que una Lectura no muestre lo que no usa (nivel, semanas, días por semana…). Incluye dejar Lectura como la pidió el PO, también en los espacios que ya existen | 3 | 5 |
+| HU-13 | 🟡 | Como Admin, quiero ver los miembros de un espacio, cambiar su rol o quitarlos, e invitar a alguien desde la web, para no usar la API a mano (la API ya existe: TEC-02) | 5 | 5 |
+| HU-14 | 🟡 | Como usuario, quiero cambiar mi nombre, mi correo y mi contraseña, para mantener mi cuenta al día (como HU-29 de Gestor de Proyectos) | 3 | 5 |
+| HU-15 | 🟡 | Como Admin del sistema, quiero ver las cuentas, cambiar un correo y desactivar o reactivar una cuenta, para administrar quién entra (como HU-30 de Gestor de Proyectos) | 3 | 5 |
 | INT-03 | 🟢 | Integración con Lexika (cuando exista) | — | — |
 
 ## Pendientes de definir (al escribir las historias)
