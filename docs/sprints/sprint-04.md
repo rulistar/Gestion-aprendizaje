@@ -36,4 +36,4 @@
 ### Pendiente
 
 - **INT-04:** espera TEC-08 y HU-18 en la v2 de Gestor de Proyectos.
-- **Próximo sprint:** el PO elige entre lo que queda en el backlog (HU-06 exportar e importar, HU-08 tablero y gráficas) y las decisiones abiertas: prioridad en el elemento, etiquetas de Lectura, pantallas de miembros e invitaciones, mi perfil y administración de usuarios.
+- **Próximo sprint:** el PO elige entre lo que queda en el backlog: HU-06 (exportar e importar), HU-08 (tablero y gráficas) y las historias nuevas HU-10 a HU-15, que salen de sus decisiones del 2026-11-08 (prioridad, ficha de Lectura, campos por tipo, miembros e invitaciones, mi perfil y administración de usuarios).
