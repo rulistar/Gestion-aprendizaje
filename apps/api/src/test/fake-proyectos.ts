@@ -15,6 +15,7 @@ const projectInput = z.object({
   name: z.string().min(1).max(120),
   scope: z.enum(['WORK', 'PERSONAL']),
   status,
+  priority: z.enum(['HIGH', 'MEDIUM', 'LOW']),
   startDate: date,
   endDate: date,
 });

@@ -49,6 +49,15 @@ enum ElementStatus {
   @@map("element_status")
 }
 
+/// Mismos valores que la prioridad de los proyectos en Gestor de Proyectos (HU-10)
+enum ElementPriority {
+  HIGH
+  MEDIUM
+  LOW
+
+  @@map("element_priority")
+}
+
 enum NodeKind {
   CHAPTER
   COURSE
@@ -336,8 +345,9 @@ model Element {
   actualStart    DateTime? @map("actual_start") @db.Date
   actualEnd      DateTime? @map("actual_end") @db.Date
 
-  status ElementStatus @default(NOT_STARTED)
-  notes  String?
+  status   ElementStatus   @default(NOT_STARTED)
+  priority ElementPriority @default(MEDIUM)
+  notes    String?
   /// Se envía a Gestor de Proyectos y cada cambio llega solo (INT-02, ADR-0004)
   syncEnabled Boolean @default(false) @map("sync_enabled")
 
@@ -392,6 +402,8 @@ model ElementNode {
   hoursPerDay      Decimal? @map("hours_per_day") @db.Decimal(4, 2)
   manualTotalHours Decimal? @map("manual_total_hours") @db.Decimal(8, 2)
   status           ElementStatus?
+  /// Solo en un Curso; las demás clases la dejan vacía (HU-10)
+  priority         ElementPriority?
   notes            String?
 
   // Actividad

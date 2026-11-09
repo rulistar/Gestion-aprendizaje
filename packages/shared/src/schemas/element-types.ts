@@ -20,6 +20,7 @@ export const ELEMENT_FIELDS = [
   'actualStart',
   'actualEnd',
   'status',
+  'priority',
   'notes',
 ] as const;
 export const elementFieldSchema = z.enum(ELEMENT_FIELDS);
@@ -40,6 +41,7 @@ export const DEFAULT_FIELD_LABELS: Record<ElementField, string> = {
   actualStart: 'Inicio real',
   actualEnd: 'Fin real',
   status: 'Estado',
+  priority: 'Prioridad',
   notes: 'Notas',
 };
 

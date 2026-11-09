@@ -19,7 +19,7 @@ Mismos estados en las dos apps: no hace falta traducirlos.
 
 | Aprendizaje | Proyectos | Campos que se envían |
 |---|---|---|
-| Elemento | Proyecto | Nombre, estado, fechas estimadas y reales |
+| Elemento | Proyecto | Nombre, estado, prioridad (HU-10), fechas estimadas y reales |
 | Capítulo o curso | Fase (un capítulo dentro de otro, o un curso dentro de un capítulo, es una subfase) | Nombre y orden |
 | Actividad | Tarea, en la fase de su padre (o sin fase si está en la raíz) | Nombre → título, estado, duración en minutos → minutos estimados, fechas estimadas y reales |
 

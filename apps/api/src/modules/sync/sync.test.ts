@@ -270,18 +270,23 @@ describe('enviar a Gestor de Proyectos (INT-02)', () => {
     expect((await t.status()).state).toBe('off');
   });
 
-  it('el estado y las fechas del elemento llegan al proyecto', async () => {
+  it('el estado, la prioridad y las fechas del elemento llegan al proyecto', async () => {
     const t = await setup();
     await t.enable();
     await processDue(db, clientOf());
 
     await t.updateElement({
       status: 'IN_PROGRESS',
+      priority: 'HIGH',
       estimatedStart: '2026-11-09',
       estimatedEnd: '2026-12-20',
     });
     await flush();
-    expect(remoteProject()).toMatchObject({ status: 'IN_PROGRESS', endDate: '2026-12-20' });
+    expect(remoteProject()).toMatchObject({
+      status: 'IN_PROGRESS',
+      priority: 'HIGH',
+      endDate: '2026-12-20',
+    });
   });
 
   it('renombrar y reordenar capítulos se refleja en las fases', async () => {

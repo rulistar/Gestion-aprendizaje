@@ -54,6 +54,7 @@ export async function syncElement(
       workspaceId: true,
       name: true,
       status: true,
+      priority: true,
       estimatedStart: true,
       estimatedEnd: true,
       deletedAt: true,
@@ -99,6 +100,7 @@ export async function syncElement(
   const project = projectBody({
     name: element.name,
     status: element.status,
+    priority: element.priority,
     estimatedStart: toIsoDate(element.estimatedStart),
     estimatedEnd: toIsoDate(element.estimatedEnd),
   });

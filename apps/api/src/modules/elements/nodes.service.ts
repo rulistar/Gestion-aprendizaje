@@ -5,6 +5,7 @@ import {
   type ActivityStatus,
   type CreateNodeInput,
   type ElementNode,
+  type ElementPriority,
   type ElementStatus,
   type MoveNodeInput,
   type NodeKind,
@@ -47,6 +48,7 @@ const nodeSelect = {
   actualStart: true,
   actualEnd: true,
   status: true,
+  priority: true,
   notes: true,
   activityTypeId: true,
   durationMinutes: true,
@@ -78,6 +80,7 @@ interface NodeRow {
   actualStart: Date | null;
   actualEnd: Date | null;
   status: ElementStatus | null;
+  priority: ElementPriority | null;
   notes: string | null;
   activityTypeId: string | null;
   durationMinutes: number | null;
@@ -106,6 +109,7 @@ function toNode(row: NodeRow): ElementNode {
         typeId: row.typeId!,
         daysPerWeek: row.daysPerWeek!,
         status: row.status!,
+        priority: row.priority!,
       }),
     };
   }

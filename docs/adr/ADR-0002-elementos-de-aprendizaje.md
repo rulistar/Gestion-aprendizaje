@@ -31,6 +31,7 @@ Espacio de trabajo
 | Inicio y fin estimados | Fechas `date` (`AAAA-MM-DD`), opcionales; el fin no puede ser anterior al inicio |
 | Inicio y fin reales | Se llenan solos al pasar a En curso y a Terminado; **se pueden corregir** |
 | Estado | No iniciado, En curso, Pausado, Cancelado, Terminado (los de Gestor de Proyectos) |
+| Prioridad | Alta, Media (por omisión) o Baja, como la de los proyectos en Gestor de Proyectos (HU-10, PO 2026-11-08) |
 | Notas | Texto libre |
 
 **Actividad:** nombre, tipo de actividad (catálogo; por omisión video/lección, lectura, ejercicio, quiz, proyecto, examen), duración en minutos, estado (Pendiente, En curso, Pausada, Hecha, Cancelada, como las tareas de Gestor de Proyectos) y fechas estimadas y reales.

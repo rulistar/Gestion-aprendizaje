@@ -4,9 +4,19 @@ import { elementFiltersSchema, filterElements, hasActiveFilters } from './elemen
 const TYPE_A = '01a1b3c2-3eaa-7059-89a1-d001d4d0856a';
 const TYPE_B = '01a1b3c2-3eaa-7059-89a1-d001d4d0856b';
 const elements = [
-  { name: 'Lógica de programación', typeId: TYPE_A, status: 'IN_PROGRESS' as const },
-  { name: 'SQL intermedio', typeId: TYPE_A, status: 'DONE' as const },
-  { name: 'El arte de la guerra', typeId: TYPE_B, status: 'IN_PROGRESS' as const },
+  {
+    name: 'Lógica de programación',
+    typeId: TYPE_A,
+    status: 'IN_PROGRESS' as const,
+    priority: 'HIGH' as const,
+  },
+  { name: 'SQL intermedio', typeId: TYPE_A, status: 'DONE' as const, priority: 'MEDIUM' as const },
+  {
+    name: 'El arte de la guerra',
+    typeId: TYPE_B,
+    status: 'IN_PROGRESS' as const,
+    priority: 'HIGH' as const,
+  },
 ];
 const names = (filters: object) => filterElements(elements, filters).map((e) => e.name);
 
@@ -25,11 +35,19 @@ describe('filterElements', () => {
     expect(names({ typeId: TYPE_A, status: 'IN_PROGRESS' })).toEqual(['Lógica de programación']);
     expect(names({ q: 'sql', status: 'IN_PROGRESS' })).toEqual([]);
   });
+
+  it('filtra por prioridad (HU-10)', () => {
+    expect(names({ priority: 'HIGH' })).toEqual(['Lógica de programación', 'El arte de la guerra']);
+    expect(names({ priority: 'LOW' })).toEqual([]);
+    expect(names({ priority: 'HIGH', typeId: TYPE_B })).toEqual(['El arte de la guerra']);
+  });
 });
 
 describe('elementFiltersSchema', () => {
   it('ignora lo que no es válido, sin fallar', () => {
-    expect(elementFiltersSchema.parse({ q: 5, typeId: 'x', status: 'NOPE' })).toEqual({});
+    expect(
+      elementFiltersSchema.parse({ q: 5, typeId: 'x', status: 'NOPE', priority: 'URGENTE' }),
+    ).toEqual({});
   });
 
   it('conserva los espacios mientras se escribe', () => {
@@ -42,5 +60,6 @@ describe('hasActiveFilters', () => {
     expect(hasActiveFilters({ q: '  ' })).toBe(false);
     expect(hasActiveFilters({})).toBe(false);
     expect(hasActiveFilters({ status: 'DONE' })).toBe(true);
+    expect(hasActiveFilters({ priority: 'LOW' })).toBe(true);
   });
 });

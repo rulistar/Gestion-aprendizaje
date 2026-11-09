@@ -234,6 +234,24 @@ describe('la ficha', () => {
     );
   });
 
+  it('la prioridad es Media por omisión, se cambia y viaja en la lista (HU-10)', async () => {
+    const { ana, ws, typeId } = await setup();
+    const created = await createOk(ana.cookies, ws.id, { typeId, name: 'Curso de Go' });
+    expect(created.priority).toBe('MEDIUM');
+
+    const updated = await put(ana.cookies, ws.id, created.id, {
+      typeId,
+      name: 'Curso de Go',
+      priority: 'HIGH',
+    });
+    expect(elementSchema.parse(updated.json()).priority).toBe('HIGH');
+    const list = await app.inject({ url: url(ws.id), cookies: ana.cookies });
+    expect(elementListSchema.parse(list.json())[0]!.priority).toBe('HIGH');
+
+    const invalid = await post(ana.cookies, ws.id, { typeId, name: 'Otro', priority: 'URGENTE' });
+    expect(invalid.statusCode).toBe(400);
+  });
+
   it('la lista trae lo más reciente primero', async () => {
     const { ana, ws, typeId } = await setup();
     await createOk(ana.cookies, ws.id, { typeId, name: 'Primero' });

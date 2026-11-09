@@ -8,7 +8,7 @@
 
 | ID | Elemento | Puntos | Estado |
 |---|---|---|---|
-| HU-10 | Prioridad Alta, Media o Baja en cada elemento, con filtro; llega a la prioridad del proyecto en Gestor de Proyectos | 2 | Pendiente |
+| HU-10 | Prioridad Alta, Media o Baja en cada elemento, con filtro; llega a la prioridad del proyecto en Gestor de Proyectos | 2 | En revisión |
 | HU-11 | Autor y Género (catálogos nuevos), Número de páginas y Horas reales (todos los tipos) | 5 | Pendiente |
 | HU-12 | Cada tipo elige qué campos muestra; Lectura queda como la pidió el PO, también en los espacios que ya existen | 3 | Pendiente |
 | HU-13 | Miembros e invitaciones desde la web | 5 | Pendiente |
@@ -21,3 +21,4 @@
 - **Ficha de Lectura pedida por el PO:** nombre del libro, autor, editorial, número de páginas, fechas estimadas y reales, horas estimadas y reales, y género.
 - **Usuarios:** se toman como referencia HU-25, HU-29 y HU-30 de Gestor de Proyectos, con sus mismas reglas de seguridad: pedir la contraseña actual, cerrar las demás sesiones y no desactivarse a sí mismo.
 - **Por decidir al llegar:** si Curso y Otro también ocultan campos (HU-12), y si HU-15 incluye un enlace para restablecer la contraseña desde la web.
+- **HU-10:** la prioridad está en la ficha, así que también la tiene un Curso dentro de un elemento (comparten ficha). Por omisión es Media, también para lo que ya existía. La lista la muestra y se filtra por ella (en la URL, como los demás filtros). Su nombre se puede cambiar por tipo, como los demás campos. Viaja a la prioridad del proyecto en Gestor de Proyectos.

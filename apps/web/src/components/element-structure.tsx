@@ -6,6 +6,7 @@ import {
   allowedChildKinds,
   buildNodeTree,
   chapterContentSchema,
+  ELEMENT_PRIORITY_LABELS,
   ELEMENT_STATUS_LABELS,
   elementProgress,
   nodeKindLabel,
@@ -66,8 +67,12 @@ interface Shared {
 /** Lo que el nodo necesita mostrar además de sus datos propios */
 function summary(node: NodeTreeItem, catalogs: CatalogItem[]) {
   if (node.kind === 'COURSE') {
-    const { status, totalHours } = node.ficha;
-    return [ELEMENT_STATUS_LABELS[status], totalHours !== null && `${totalHours} h`];
+    const { status, priority, totalHours } = node.ficha;
+    return [
+      ELEMENT_STATUS_LABELS[status],
+      `Prioridad ${ELEMENT_PRIORITY_LABELS[priority].toLowerCase()}`,
+      totalHours !== null && `${totalHours} h`,
+    ];
   }
   if (node.kind === 'ACTIVITY') {
     const { activityTypeId, durationMinutes, status } = node.activity;

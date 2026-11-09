@@ -1,6 +1,9 @@
 import {
+  ELEMENT_PRIORITIES,
+  ELEMENT_PRIORITY_LABELS,
   ELEMENT_STATUS_LABELS,
   ELEMENT_STATUSES,
+  elementPrioritySchema,
   elementStatusSchema,
   filterElements,
   hasActiveFilters,
@@ -21,7 +24,7 @@ import { workspaceQueryOptions } from '@/lib/workspaces';
 
 const route = getRouteApi('/app/w/$workspaceId/elementos');
 
-/** Lista de elementos con su avance y filtros en la URL (HU-05) */
+/** Lista de elementos con su avance y filtros en la URL (HU-05); prioridad (HU-10) */
 export function ElementsPage() {
   const { workspaceId } = route.useParams();
   const filters = route.useSearch();
@@ -72,7 +75,7 @@ export function ElementsPage() {
         </Card>
       ) : (
         <>
-          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]">
             <Input
               type="search"
               aria-label="Buscar por nombre"
@@ -107,6 +110,20 @@ export function ElementsPage() {
                 </option>
               ))}
             </Select>
+            <Select
+              aria-label="Filtrar por prioridad"
+              value={filters.priority ?? ''}
+              onChange={(event) =>
+                setFilters({ priority: elementPrioritySchema.safeParse(event.target.value).data })
+              }
+            >
+              <option value="">Todas las prioridades</option>
+              {ELEMENT_PRIORITIES.map((priority) => (
+                <option key={priority} value={priority}>
+                  {ELEMENT_PRIORITY_LABELS[priority]}
+                </option>
+              ))}
+            </Select>
             {hasActiveFilters(filters) && (
               <Button variant="ghost" onClick={() => void navigate({ search: {}, replace: true })}>
                 Limpiar filtros
@@ -130,7 +147,8 @@ export function ElementsPage() {
                     <span className="grid min-w-0 gap-0.5">
                       <span className="font-medium">{element.name}</span>
                       <span className="text-sm text-muted-foreground">
-                        {typeName(element.typeId)} · {ELEMENT_STATUS_LABELS[element.status]}
+                        {typeName(element.typeId)} · {ELEMENT_STATUS_LABELS[element.status]} ·
+                        Prioridad {ELEMENT_PRIORITY_LABELS[element.priority].toLowerCase()}
                         {element.totalHours !== null && ` · ${element.totalHours} h`}
                       </span>
                     </span>
