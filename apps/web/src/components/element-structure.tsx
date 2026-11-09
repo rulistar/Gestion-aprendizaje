@@ -214,7 +214,8 @@ function NodeRow({
       {panel === 'delete' && (
         <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
           <p className="text-sm">
-            ¿Quitar "{node.name}"{node.children.length > 0 && ' y todo lo que contiene'}?
+            ¿Quitar "{node.name}"{node.children.length > 0 && ' y todo lo que contiene'}? Podrás
+            restaurarlo desde la Papelera.
           </p>
           <Button
             size="sm"

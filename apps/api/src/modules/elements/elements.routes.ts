@@ -5,6 +5,7 @@ import { requireAuth } from '../auth/session.js';
 import { requirePermission } from '../workspaces/access.js';
 import {
   createElement,
+  deleteElement,
   getElement,
   InvalidActualDatesError,
   InvalidReferenceError,
@@ -100,6 +101,23 @@ export const elementsRoutes: FastifyPluginCallback = (app, _options, done) => {
       } catch (error) {
         return sendElementError(reply, error);
       }
+    },
+  );
+
+  // A la papelera (HU-07); de ahí se restaura o, solo el Admin, se borra para siempre
+  app.delete(
+    `${BASE}/:elementId`,
+    { preHandler: requirePermission('element.delete') },
+    async (request, reply) => {
+      const params = elementParamsSchema.safeParse(request.params);
+      if (!params.success) return reply.code(404).send({ message: NOT_FOUND });
+      const deleted = await deleteElement(
+        app.db,
+        request.auth!.userId,
+        request.membership!.workspaceId,
+        params.data.elementId,
+      );
+      return deleted ? reply.code(204).send() : reply.code(404).send({ message: NOT_FOUND });
     },
   );
 

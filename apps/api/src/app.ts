@@ -11,6 +11,7 @@ import { healthRoutes } from './modules/health/health.routes.js';
 import { acceptInvitationRoutes } from './modules/invitations/accept.routes.js';
 import { invitationsRoutes } from './modules/invitations/invitations.routes.js';
 import { workspacesRoutes } from './modules/workspaces/workspaces.routes.js';
+import { trashRoutes } from './modules/trash/trash.routes.js';
 import { registerSecurity, type SecurityOptions } from './security.js';
 import { registerWebApp } from './web/web-app.js';
 
@@ -72,6 +73,7 @@ export function buildApp({
   void app.register(elementTypesRoutes, { prefix: '/api/v1' });
   void app.register(elementsRoutes, { prefix: '/api/v1' });
   void app.register(nodesRoutes, { prefix: '/api/v1' });
+  void app.register(trashRoutes, { prefix: '/api/v1' });
 
   if (webDist) registerWebApp(app, webDist);
 

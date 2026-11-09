@@ -38,6 +38,19 @@ export function useCreateElement(workspaceId: string) {
   });
 }
 
+/** A la papelera (HU-07); de ahí se restaura */
+export function useDeleteElement(workspaceId: string, elementId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiFetch(`${elementsPath(workspaceId)}/${elementId}`, { method: 'DELETE' }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: elementsKey(workspaceId) }),
+        queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'trash'] }),
+      ]),
+  });
+}
+
 export function useUpdateElement(workspaceId: string, elementId: string) {
   const queryClient = useQueryClient();
   return useMutation({
