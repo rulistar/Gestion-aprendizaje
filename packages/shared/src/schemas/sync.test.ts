@@ -24,11 +24,12 @@ describe('fitText', () => {
 });
 
 describe('projectBody', () => {
-  it('envía nombre, estado y fechas estimadas, como proyecto personal', () => {
+  it('envía nombre, estado, prioridad y fechas estimadas, como proyecto personal', () => {
     expect(
       projectBody({
         name: 'x'.repeat(200),
         status: 'IN_PROGRESS',
+        priority: 'HIGH',
         estimatedStart: '2026-11-01',
         estimatedEnd: null,
       }),
@@ -36,6 +37,7 @@ describe('projectBody', () => {
       name: `${'x'.repeat(119)}…`,
       scope: 'PERSONAL',
       status: 'IN_PROGRESS',
+      priority: 'HIGH',
       startDate: '2026-11-01',
       endDate: null,
     });

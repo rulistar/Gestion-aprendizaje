@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { ActivityStatus } from './element-nodes.js';
-import type { ElementStatus } from './elements.js';
+import type { ElementPriority, ElementStatus } from './elements.js';
 
 /*
  * Integración con Gestor de Proyectos (INT-02, ADR-0004). Aquí está lo que se envía a su API
@@ -26,6 +26,7 @@ export interface ProyectosProjectBody {
   name: string;
   scope: 'PERSONAL';
   status: ElementStatus;
+  priority: ElementPriority;
   startDate: string | null;
   endDate: string | null;
 }
@@ -37,6 +38,7 @@ export interface ProyectosProjectBody {
 export function projectBody(element: {
   name: string;
   status: ElementStatus;
+  priority: ElementPriority;
   estimatedStart: string | null;
   estimatedEnd: string | null;
 }): ProyectosProjectBody {
@@ -44,6 +46,7 @@ export function projectBody(element: {
     name: fitText(element.name, PROYECTOS_NAME_MAX),
     scope: 'PERSONAL',
     status: element.status,
+    priority: element.priority,
     startDate: element.estimatedStart,
     endDate: element.estimatedEnd,
   };

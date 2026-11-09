@@ -7,6 +7,7 @@ import {
   type Element,
   type ElementFicha,
   type ElementListItem,
+  type ElementPriority,
   type ElementStatus,
 } from '@aprendizaje/shared';
 import type { Db, Tx } from '../../db/client.js';
@@ -48,6 +49,7 @@ const elementSelect = {
   actualStart: true,
   actualEnd: true,
   status: true,
+  priority: true,
   notes: true,
   updatedAt: true,
 } as const;
@@ -74,6 +76,7 @@ export function toElement(row: {
   actualStart: Date | null;
   actualEnd: Date | null;
   status: ElementStatus;
+  priority: ElementPriority;
   notes: string | null;
   updatedAt: Date;
 }): Element {
@@ -98,6 +101,7 @@ export function toElement(row: {
     actualStart: toIsoDate(row.actualStart),
     actualEnd: toIsoDate(row.actualEnd),
     status: row.status,
+    priority: row.priority,
     notes: row.notes,
     updatedAt: row.updatedAt.toISOString(),
   };

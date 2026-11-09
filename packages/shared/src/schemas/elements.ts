@@ -20,6 +20,17 @@ export const ELEMENT_STATUS_LABELS: Record<ElementStatus, string> = {
   DONE: 'Terminado',
 };
 
+/** Prioridad (HU-10): los mismos valores que la de los proyectos en Gestor de Proyectos */
+export const ELEMENT_PRIORITIES = ['HIGH', 'MEDIUM', 'LOW'] as const;
+export const elementPrioritySchema = z.enum(ELEMENT_PRIORITIES);
+export type ElementPriority = z.infer<typeof elementPrioritySchema>;
+
+export const ELEMENT_PRIORITY_LABELS: Record<ElementPriority, string> = {
+  HIGH: 'Alta',
+  MEDIUM: 'Media',
+  LOW: 'Baja',
+};
+
 export const DEFAULT_DAYS_PER_WEEK = 5;
 
 const catalogRef = z.uuid('Valor no válido').nullable().default(null);
@@ -93,6 +104,7 @@ export const elementFichaSchema = z
     actualStart: optionalDate,
     actualEnd: optionalDate,
     status: elementStatusSchema.default('NOT_STARTED'),
+    priority: elementPrioritySchema.default('MEDIUM'),
     notes: z.string().trim().max(5000, 'Máximo 5000 caracteres').nullable().default(null),
   })
   .superRefine(checkDateOrder);
@@ -115,6 +127,7 @@ export const ELEMENT_FORM_FIELDS = [
   'actualStart',
   'actualEnd',
   'status',
+  'priority',
   'notes',
 ] as const;
 
@@ -163,6 +176,7 @@ export const elementSchema = z.object({
   actualStart: isoDate.nullable(),
   actualEnd: isoDate.nullable(),
   status: elementStatusSchema,
+  priority: elementPrioritySchema,
   notes: z.string().nullable(),
   updatedAt: z.iso.datetime(),
 });

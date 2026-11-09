@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { elementStatusSchema, type ElementStatus } from './elements.js';
+import {
+  elementPrioritySchema,
+  elementStatusSchema,
+  type ElementPriority,
+  type ElementStatus,
+} from './elements.js';
 
 /**
  * Filtros de la lista de elementos (HU-05). Viven en la URL: un enlace abre la misma vista y volver
@@ -9,6 +14,7 @@ export const elementFiltersSchema = z.object({
   q: z.string().max(100).optional().catch(undefined),
   typeId: z.uuid().optional().catch(undefined),
   status: elementStatusSchema.optional().catch(undefined),
+  priority: elementPrioritySchema.optional().catch(undefined),
 });
 export type ElementFilters = z.infer<typeof elementFiltersSchema>;
 
@@ -20,19 +26,19 @@ function normalize(text: string): string {
     .toLowerCase();
 }
 
-export function hasActiveFilters({ q, typeId, status }: ElementFilters): boolean {
-  return Boolean(q?.trim() || typeId || status);
+export function hasActiveFilters({ q, typeId, status, priority }: ElementFilters): boolean {
+  return Boolean(q?.trim() || typeId || status || priority);
 }
 
-export function filterElements<T extends { name: string; typeId: string; status: ElementStatus }>(
-  elements: readonly T[],
-  { q, typeId, status }: ElementFilters,
-): T[] {
+export function filterElements<
+  T extends { name: string; typeId: string; status: ElementStatus; priority: ElementPriority },
+>(elements: readonly T[], { q, typeId, status, priority }: ElementFilters): T[] {
   const text = normalize(q?.trim() ?? '');
   return elements.filter(
     (element) =>
       (!text || normalize(element.name).includes(text)) &&
       (!typeId || element.typeId === typeId) &&
-      (!status || element.status === status),
+      (!status || element.status === status) &&
+      (!priority || element.priority === priority),
   );
 }

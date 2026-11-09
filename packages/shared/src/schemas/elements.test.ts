@@ -109,6 +109,7 @@ describe('elementFichaSchema', () => {
     expect(elementFichaSchema.parse(valid)).toMatchObject({
       daysPerWeek: 5,
       status: 'NOT_STARTED',
+      priority: 'MEDIUM',
       platformId: null,
       durationWeeks: null,
       notes: null,
@@ -123,6 +124,7 @@ describe('elementFichaSchema', () => {
     ['más de 24 horas por día', { hoursPerDay: 25 }, 'hoursPerDay'],
     ['horas negativas', { manualTotalHours: -1 }, 'manualTotalHours'],
     ['una fecha imposible', { estimatedStart: '2026-02-30' }, 'estimatedStart'],
+    ['una prioridad que no existe', { priority: 'URGENTE' }, 'priority'],
     [
       'un fin estimado anterior al inicio',
       { estimatedStart: '2026-02-02', estimatedEnd: '2026-02-01' },

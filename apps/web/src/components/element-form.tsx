@@ -2,6 +2,8 @@ import {
   computeTotalHours,
   DEFAULT_DAYS_PER_WEEK,
   ELEMENT_FORM_FIELDS,
+  ELEMENT_PRIORITIES,
+  ELEMENT_PRIORITY_LABELS,
   ELEMENT_STATUS_LABELS,
   ELEMENT_STATUSES,
   elementFichaFormSchema,
@@ -172,6 +174,17 @@ export function ElementForm({
               ))}
             </Select>
             <FieldError {...form.errorProps('status')} />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor={form.idOf('priority')}>{labels.priority}</Label>
+            <Select {...form.field('priority')} defaultValue={element?.priority ?? 'MEDIUM'}>
+              {ELEMENT_PRIORITIES.map((priority) => (
+                <option key={priority} value={priority}>
+                  {ELEMENT_PRIORITY_LABELS[priority]}
+                </option>
+              ))}
+            </Select>
+            <FieldError {...form.errorProps('priority')} />
           </div>
         </Section>
 

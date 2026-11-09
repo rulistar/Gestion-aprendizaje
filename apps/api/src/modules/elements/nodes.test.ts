@@ -310,6 +310,7 @@ describe('contenido', () => {
       id: created.id,
       totalHours: 40,
       actualStart: '2026-03-15',
+      priority: 'MEDIUM',
     });
 
     const updated = elementNodeSchema.parse(
@@ -321,6 +322,7 @@ describe('contenido', () => {
             content: {
               ...content,
               status: 'DONE',
+              priority: 'LOW',
               manualTotalHours: 12,
               actualStart: '2026-03-15',
             },
@@ -331,7 +333,11 @@ describe('contenido', () => {
       ).json(),
     );
     if (updated.kind !== 'COURSE') throw new Error('Debe ser un Curso');
-    expect(updated.ficha).toMatchObject({ totalHours: 12, actualEnd: '2026-03-20' });
+    expect(updated.ficha).toMatchObject({
+      totalHours: 12,
+      actualEnd: '2026-03-20',
+      priority: 'LOW',
+    });
   });
 
   it('un Curso rechaza un tipo de otro espacio y conserva uno archivado', async () => {
