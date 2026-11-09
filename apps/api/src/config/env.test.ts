@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { loadEnv } from './env.js';
+import { loadEnv, proyectosConfig } from './env.js';
 
 const DATABASE_URL = 'postgresql://usuario:clave@localhost:5433/aprendizaje';
 
@@ -22,6 +22,42 @@ describe('loadEnv', () => {
     expect(() => loadEnv({ DATABASE_URL, WEB_DIST_DIR: 'apps/web/dist' })).toThrow(/absoluta/);
     const absolute = resolve('apps/web/dist');
     expect(loadEnv({ DATABASE_URL, WEB_DIST_DIR: absolute }).WEB_DIST_DIR).toBe(absolute);
+  });
+
+  describe('integración con Gestor de Proyectos (INT-02)', () => {
+    const proyectos = {
+      PROYECTOS_API_URL: 'https://proyectos.ejemplo.com',
+      PROYECTOS_API_TOKEN: 'token-ficticio-de-al-menos-veinte',
+      PROYECTOS_WORKSPACE_ID: '0190f5a4-0000-7000-8000-000000000001',
+    };
+
+    it('sin las variables (o vacías) queda apagada', () => {
+      expect(proyectosConfig(loadEnv({ DATABASE_URL }))).toBeNull();
+      expect(proyectosConfig(loadEnv({ DATABASE_URL, PROYECTOS_API_TOKEN: '' }))).toBeNull();
+    });
+
+    it('con las tres, queda encendida', () => {
+      expect(proyectosConfig(loadEnv({ DATABASE_URL, ...proyectos }))).toEqual({
+        url: proyectos.PROYECTOS_API_URL,
+        token: proyectos.PROYECTOS_API_TOKEN,
+        workspaceId: proyectos.PROYECTOS_WORKSPACE_ID,
+      });
+    });
+
+    it('van las tres juntas', () => {
+      expect(() =>
+        loadEnv({ DATABASE_URL, PROYECTOS_API_URL: proyectos.PROYECTOS_API_URL }),
+      ).toThrow(/PROYECTOS_API_TOKEN/);
+    });
+
+    it('en producción la URL debe ser https y siempre solo un origen', () => {
+      const http = { ...proyectos, PROYECTOS_API_URL: 'http://proyectos.ejemplo.com' };
+      expect(() => loadEnv({ DATABASE_URL, NODE_ENV: 'production', ...http })).toThrow(/https/);
+      expect(loadEnv({ DATABASE_URL, ...http }).PROYECTOS_API_URL).toBe(http.PROYECTOS_API_URL);
+      expect(() =>
+        loadEnv({ DATABASE_URL, ...proyectos, PROYECTOS_API_URL: 'https://p.ejemplo.com/api' }),
+      ).toThrow(/origen/);
+    });
   });
 
   it('convierte CORS_ORIGINS en una lista y TRUST_PROXY en booleano', () => {

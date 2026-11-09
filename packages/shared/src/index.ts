@@ -10,3 +10,4 @@ export * from './schemas/permissions.js';
 export * from './schemas/progress.js';
 export * from './schemas/workspaces.js';
 export * from './schemas/trash.js';
+export * from './schemas/sync.js';

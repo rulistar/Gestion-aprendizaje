@@ -5,6 +5,7 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { ElementForm } from '@/components/element-form';
 import { ElementStructure } from '@/components/element-structure';
+import { SyncCard } from '@/components/sync-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { catalogsQueryOptions } from '@/lib/catalogs';
@@ -14,7 +15,7 @@ import { workspaceQueryOptions } from '@/lib/workspaces';
 
 const route = getRouteApi('/app/w/$workspaceId/elementos/$elementId');
 
-/** Ver y editar la ficha de un elemento (HU-03) y su estructura (HU-04) */
+/** Ver y editar la ficha de un elemento (HU-03), su estructura (HU-04) y su envío a Proyectos (INT-02) */
 export function ElementDetailPage() {
   const { workspaceId, elementId } = route.useParams();
   const { data: workspace } = useSuspenseQuery(workspaceQueryOptions(workspaceId));
@@ -115,6 +116,7 @@ export function ElementDetailPage() {
           />
         </CardContent>
       </Card>
+      <SyncCard workspaceId={workspaceId} elementId={elementId} canUpdate={canUpdate} />
     </div>
   );
 }

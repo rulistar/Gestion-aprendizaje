@@ -89,12 +89,20 @@ apps/
       trash/              papelera (HU-07): GET /workspaces/:id/trash, POST /trash/:kind/:id/restore (cada quien lo que pudo
                           quitar: trashPermission en shared) y DELETE /trash/:kind/:id = borrar para siempre (trash.manage).
                           Un nodo vuelve con lo que se fue con él (misma fecha de baja); lo quitado antes se queda
+      sync/               envío a Gestor de Proyectos (INT-02, ADR-0004). outbox.ts: markChanged(tx, elementId) va en la
+                          transacción de TODO cambio de un elemento o sus nodos (incluidos papelera y borrado definitivo).
+                          sync.service.ts: syncElement deja Proyectos igual que el estado actual (vínculos en sync_links,
+                          huella para no reenviar), processDue (espera 30 s, reintentos 1/5/15 min y cada hora, fallido a
+                          las 24 h) y startSyncWorker (lo arranca server.ts solo si están las PROYECTOS_*).
+                          proyectos-client.ts: llamadas a su /api/v1 con Bearer, 90 s de espera, 1 llamada cada 2 s.
+                          Rutas: GET/POST/DELETE /elements/:id/sync y POST /elements/:id/sync/retry
       setup/              createFirstAdmin: primer Admin + su workspace
     src/cli/            setup-admin.ts → pnpm setup:admin; reset-password.ts → pnpm reset:password (HU-09); prompt.ts = pedir una contraseña sin mostrarla
     src/db/client.ts    createDb(): PrismaClient con el adaptador pg; se inyecta en buildApp({ db }) → app.db
     src/db/audit.ts     auditCreate/auditUpdate/auditSoftDelete/auditRestore + filtro notDeleted
     src/generated/      cliente de Prisma generado (ignorado por Git; se regenera en pnpm install)
     src/test/           BD de pruebas: global-setup (crea + migra), test-db (createTestDb, resetDb).
+                        fake-proyectos.ts = receptor de prueba: imita en memoria las rutas de Proyectos (como un fetch).
                         e2e-server.ts = servidor de Playwright (pnpm e2e:serve): BD <DATABASE_URL>_e2e vacía en cada
                         corrida, primer Admin con contraseña de un solo uso, sirve la web compilada en :3101
     prisma/             schema.prisma + migrations/ (versionadas en Git)
@@ -109,6 +117,8 @@ packages/
     src/schemas/progress.ts     avance (ADR-0002 §4): summarizeActivities, elementProgress, nodeProgress, con pruebas
     src/schemas/element-filters.ts  filtros de la lista de elementos (HU-05), en la URL, con pruebas
     src/schemas/trash.ts        papelera (HU-07): trashItemSchema, trashPermission, visibleTrashKinds, con pruebas
+    src/schemas/sync.ts         integración con Proyectos (INT-02): copia de lo que se usa de su contrato, projectBody/taskBody
+                                (qué se envía), phaseMoves (orden de fases) y syncStatusSchema, con pruebas
     src/schemas/element-nodes.ts  árbol de un elemento: clases, reglas de 3 niveles (allowedChildKinds), actividad y buildNodeTree, con pruebas
     src/schemas/element-types.ts  tipos de elemento: campos de la ficha, nombres por omisión y etiquetas propias (HU-02), con pruebas
 docs/                 acta, ADRs, backlog, sprints, despliegue.md (Prettier no los reformatea)

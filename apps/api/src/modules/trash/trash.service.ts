@@ -1,6 +1,7 @@
 import type { TrashItem, TrashKind } from '@aprendizaje/shared';
 import type { Db, Tx } from '../../db/client.js';
 import { auditRestore, notDeleted } from '../../db/audit.js';
+import { markChanged, markPurged } from '../sync/outbox.js';
 
 /** Lo que está en la papelera; `deletedAt` no es null */
 const inTrash = { deletedAt: { not: null } } as const;
@@ -114,11 +115,15 @@ export async function restoreFromTrash(
 ): Promise<boolean> {
   const data = auditRestore(actorId);
   if (kind === 'element') {
-    const { count } = await db.element.updateMany({
-      where: { id, workspaceId, ...inTrash },
-      data,
+    return db.$transaction(async (tx) => {
+      const { count } = await tx.element.updateMany({
+        where: { id, workspaceId, ...inTrash },
+        data,
+      });
+      // Si estaba sincronizado, vuelve a crearse en Proyectos (ADR-0004 §1)
+      if (count > 0) await markChanged(tx, id);
+      return count > 0;
     });
-    return count > 0;
   }
   return db.$transaction(async (tx) => {
     const node = await tx.elementNode.findFirst({
@@ -128,6 +133,7 @@ export async function restoreFromTrash(
     if (!node) return false;
     const bundle = await nodeBundle(tx, node.elementId, id, node.deletedAt!);
     await tx.elementNode.updateMany({ where: { id: { in: bundle.map((n) => n.id) } }, data });
+    await markChanged(tx, node.elementId);
     return true;
   });
 }
@@ -144,8 +150,13 @@ export async function purgeFromTrash(
   id: string,
 ): Promise<boolean> {
   if (kind === 'element') {
-    const { count } = await db.element.deleteMany({ where: { id, workspaceId, ...inTrash } });
-    return count > 0;
+    return db.$transaction(async (tx) => {
+      const { count } = await tx.element.deleteMany({ where: { id, workspaceId, ...inTrash } });
+      if (count === 0) return false;
+      // La marca dice al envío que lo quite también en Proyectos, si aún no lo había hecho
+      await markPurged(tx, workspaceId, id);
+      return true;
+    });
   }
   return db.$transaction(async (tx) => {
     const node = await tx.elementNode.findFirst({
@@ -159,6 +170,7 @@ export async function purgeFromTrash(
     });
     // Una sola sentencia: PostgreSQL revisa la relación padre-hijo al final, ya sin huérfanos
     await tx.elementNode.deleteMany({ where: { id: { in: descendantIds(nodes, id) } } });
+    await markChanged(tx, node.elementId);
     return true;
   });
 }
