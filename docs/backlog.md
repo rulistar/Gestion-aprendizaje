@@ -52,7 +52,7 @@
 | INT-02 | 🔴 | Como usuario, quiero enviar un elemento a Gestor de Proyectos y que sus cambios lleguen solos, para no capturar dos veces (lado de Aprendizaje: bandeja de salida, vínculos y envío, probado contra un receptor de prueba) | 8 | 4 |
 | INT-04 | 🔴 | Conectar la sincronización con Gestor de Proyectos real y activarla en producción (requiere TEC-08 y HU-18 de Proyectos, en su v2) | 3 | — |
 | HU-06 | 🟡 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | — |
-| HU-07 | 🟡 | Papelera: borrado lógico restaurable; físico solo desde la papelera (Admin) | 3 | — |
+| HU-07 | 🟡 | Papelera: borrado lógico restaurable; físico solo desde la papelera (Admin) | 3 | 4 |
 | HU-08 | 🟢 | Tablero por estado y gráficas (elementos por mes de término) | 5 | — |
 | INT-03 | 🟢 | Integración con Lexika (cuando exista) | — | — |
 

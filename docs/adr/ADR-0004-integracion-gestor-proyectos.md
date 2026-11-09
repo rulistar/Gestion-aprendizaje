@@ -1,6 +1,6 @@
 # ADR-0004: Integración con Gestor de Proyectos
 
-- **Estado:** Propuesto (2026-11-08); se acepta al fusionar su PR
+- **Estado:** Aceptado (2026-11-08, PR 20)
 - **Decide:** Product Owner, a propuesta del equipo técnico
 - **Contexto:** INT-01. El acta pide que Gestor de Proyectos reciba de esta app el **avance, las fechas y el estado** (objetivo 4). Cada app es dueña de sus datos y no comparten base de datos (ADR-0002 §7 de Gestor de Proyectos; ADR-0001). Las dos corren en Render Free, que las duerme tras 15 min sin tráfico y les da 750 h al mes **compartidas** (ADR-0003). Gestor de Proyectos está en su periodo de uso real: sin funciones nuevas hasta planear su v2.
 
