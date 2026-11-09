@@ -1,7 +1,7 @@
-# Product Backlog
+5 |5 |5 |5 |5 |5 |# Product Backlog
 
 > Lista priorizada de todo lo que el producto debe hacer. La ordena el **Product Owner**. Nada entra al desarrollo sin estar aquí.
-> Última actualización: 2026-11-08 (cierre del Sprint 4 y decisiones del PO: HU-10 a HU-15).
+> Última actualización: 2026-11-08 (Sprint 5 planeado: HU-10 a HU-15).
 
 ## Cómo leer este documento
 
