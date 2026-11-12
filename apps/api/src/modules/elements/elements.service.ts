@@ -25,11 +25,13 @@ const CATALOG_REFS = [
   ['sponsorId', 'SPONSOR', 'El patrocinador'],
   ['categoryId', 'CATEGORY', 'La categoría'],
   ['levelId', 'LEVEL', 'El nivel'],
+  ['authorId', 'AUTHOR', 'El autor'],
+  ['genreId', 'GENRE', 'El género'],
 ] as const satisfies readonly (readonly [keyof ElementFicha, CatalogKind, string])[];
 
 type Reference = Pick<
   ElementFicha,
-  'typeId' | 'platformId' | 'sponsorId' | 'categoryId' | 'levelId'
+  'typeId' | 'platformId' | 'sponsorId' | 'categoryId' | 'levelId' | 'authorId' | 'genreId'
 >;
 
 const elementSelect = {
@@ -40,10 +42,14 @@ const elementSelect = {
   sponsorId: true,
   categoryId: true,
   levelId: true,
+  authorId: true,
+  genreId: true,
+  pages: true,
   durationWeeks: true,
   daysPerWeek: true,
   hoursPerDay: true,
   manualTotalHours: true,
+  actualHours: true,
   estimatedStart: true,
   estimatedEnd: true,
   actualStart: true,
@@ -67,10 +73,14 @@ export function toElement(row: {
   sponsorId: string | null;
   categoryId: string | null;
   levelId: string | null;
+  authorId: string | null;
+  genreId: string | null;
+  pages: number | null;
   durationWeeks: { toNumber(): number } | null;
   daysPerWeek: number;
   hoursPerDay: { toNumber(): number } | null;
   manualTotalHours: { toNumber(): number } | null;
+  actualHours: { toNumber(): number } | null;
   estimatedStart: Date | null;
   estimatedEnd: Date | null;
   actualStart: Date | null;
@@ -94,8 +104,12 @@ export function toElement(row: {
     sponsorId: row.sponsorId,
     categoryId: row.categoryId,
     levelId: row.levelId,
+    authorId: row.authorId,
+    genreId: row.genreId,
+    pages: row.pages,
     ...hours,
     totalHours: computeTotalHours(hours),
+    actualHours: toNumber(row.actualHours),
     estimatedStart: toIsoDate(row.estimatedStart),
     estimatedEnd: toIsoDate(row.estimatedEnd),
     actualStart: toIsoDate(row.actualStart),
@@ -243,6 +257,8 @@ export async function updateElement(
         sponsorId: true,
         categoryId: true,
         levelId: true,
+        authorId: true,
+        genreId: true,
       },
     });
     if (!previous) return null;

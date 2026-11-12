@@ -35,6 +35,8 @@ enum CatalogKind {
   CATEGORY
   LEVEL
   ACTIVITY_TYPE
+  AUTHOR // HU-11
+  GENRE  // HU-11
 
   @@map("catalog_kind")
 }
@@ -273,12 +275,16 @@ model CatalogItem {
   elementsAsSponsor  Element[] @relation("ElementSponsor")
   elementsAsCategory Element[] @relation("ElementCategory")
   elementsAsLevel    Element[] @relation("ElementLevel")
+  elementsAsAuthor   Element[] @relation("ElementAuthor")
+  elementsAsGenre    Element[] @relation("ElementGenre")
 
   nodesAsPlatform     ElementNode[] @relation("NodePlatform")
   nodesAsSponsor      ElementNode[] @relation("NodeSponsor")
   nodesAsCategory     ElementNode[] @relation("NodeCategory")
   nodesAsLevel        ElementNode[] @relation("NodeLevel")
   nodesAsActivityType ElementNode[] @relation("NodeActivityType")
+  nodesAsAuthor       ElementNode[] @relation("NodeAuthor")
+  nodesAsGenre        ElementNode[] @relation("NodeGenre")
 
   /// Sin duplicados entre los activos; los archivados no ocupan el nombre
   @@unique([workspaceId, kind, name], map: "catalog_items_workspace_kind_name_active_key", where: { archivedAt: null })
@@ -333,12 +339,20 @@ model Element {
   category   CatalogItem? @relation("ElementCategory", fields: [categoryId], references: [id], onDelete: NoAction)
   levelId    String?      @map("level_id") @db.Uuid
   level      CatalogItem? @relation("ElementLevel", fields: [levelId], references: [id], onDelete: NoAction)
+  // HU-11: pensados para Lectura, disponibles en todos los tipos
+  authorId   String?      @map("author_id") @db.Uuid
+  author     CatalogItem? @relation("ElementAuthor", fields: [authorId], references: [id], onDelete: NoAction)
+  genreId    String?      @map("genre_id") @db.Uuid
+  genre      CatalogItem? @relation("ElementGenre", fields: [genreId], references: [id], onDelete: NoAction)
+  pages      Int?
 
   durationWeeks    Decimal? @map("duration_weeks") @db.Decimal(6, 2)
   daysPerWeek      Int      @default(5) @map("days_per_week")
   hoursPerDay      Decimal? @map("hours_per_day") @db.Decimal(4, 2)
   /// Horas capturadas a mano: si hay, mandan sobre las calculadas
   manualTotalHours Decimal? @map("manual_total_hours") @db.Decimal(8, 2)
+  /// Horas que de verdad llevó, capturadas a mano (HU-11)
+  actualHours      Decimal? @map("actual_hours") @db.Decimal(8, 2)
 
   estimatedStart DateTime? @map("estimated_start") @db.Date
   estimatedEnd   DateTime? @map("estimated_end") @db.Date
@@ -397,10 +411,16 @@ model ElementNode {
   category   CatalogItem?  @relation("NodeCategory", fields: [categoryId], references: [id], onDelete: NoAction)
   levelId    String?       @map("level_id") @db.Uuid
   catalogLevel CatalogItem? @relation("NodeLevel", fields: [levelId], references: [id], onDelete: NoAction)
+  authorId   String?       @map("author_id") @db.Uuid
+  author     CatalogItem?  @relation("NodeAuthor", fields: [authorId], references: [id], onDelete: NoAction)
+  genreId    String?       @map("genre_id") @db.Uuid
+  genre      CatalogItem?  @relation("NodeGenre", fields: [genreId], references: [id], onDelete: NoAction)
+  pages      Int?
   durationWeeks    Decimal? @map("duration_weeks") @db.Decimal(6, 2)
   daysPerWeek      Int?     @map("days_per_week")
   hoursPerDay      Decimal? @map("hours_per_day") @db.Decimal(4, 2)
   manualTotalHours Decimal? @map("manual_total_hours") @db.Decimal(8, 2)
+  actualHours      Decimal? @map("actual_hours") @db.Decimal(8, 2)
   status           ElementStatus?
   /// Solo en un Curso; las demás clases la dejan vacía (HU-10)
   priority         ElementPriority?

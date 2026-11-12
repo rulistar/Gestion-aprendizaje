@@ -300,6 +300,8 @@ describe('contenido', () => {
       daysPerWeek: 5,
       hoursPerDay: 2,
       status: 'IN_PROGRESS',
+      pages: 120,
+      actualHours: 9,
     };
 
     const created = elementNodeSchema.parse(
@@ -311,6 +313,8 @@ describe('contenido', () => {
       totalHours: 40,
       actualStart: '2026-03-15',
       priority: 'MEDIUM',
+      pages: 120,
+      actualHours: 9,
     });
 
     const updated = elementNodeSchema.parse(

@@ -28,6 +28,8 @@ const DESCRIPTIONS: Record<CatalogKind, string> = {
   CATEGORY: 'El tema al que pertenece.',
   LEVEL: 'Qué tan avanzado es.',
   ACTIVITY_TYPE: 'Qué se hace en cada actividad.',
+  AUTHOR: 'Quién lo escribió o lo imparte.',
+  GENRE: 'De qué tipo es una lectura: novela, ensayo, técnico…',
 };
 
 /** Catálogos del espacio (HU-01). Lo que ya no se usa se archiva: nunca se borra */

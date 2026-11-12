@@ -125,6 +125,9 @@ describe('elementFichaSchema', () => {
     ['horas negativas', { manualTotalHours: -1 }, 'manualTotalHours'],
     ['una fecha imposible', { estimatedStart: '2026-02-30' }, 'estimatedStart'],
     ['una prioridad que no existe', { priority: 'URGENTE' }, 'priority'],
+    ['páginas en 0', { pages: 0 }, 'pages'],
+    ['páginas con decimales', { pages: 10.5 }, 'pages'],
+    ['horas reales negativas', { actualHours: -2 }, 'actualHours'],
     [
       'un fin estimado anterior al inicio',
       { estimatedStart: '2026-02-02', estimatedEnd: '2026-02-01' },

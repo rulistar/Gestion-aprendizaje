@@ -39,10 +39,14 @@ const nodeSelect = {
   sponsorId: true,
   categoryId: true,
   levelId: true,
+  authorId: true,
+  genreId: true,
+  pages: true,
   durationWeeks: true,
   daysPerWeek: true,
   hoursPerDay: true,
   manualTotalHours: true,
+  actualHours: true,
   estimatedStart: true,
   estimatedEnd: true,
   actualStart: true,
@@ -71,10 +75,14 @@ interface NodeRow {
   sponsorId: string | null;
   categoryId: string | null;
   levelId: string | null;
+  authorId: string | null;
+  genreId: string | null;
+  pages: number | null;
   durationWeeks: Decimal;
   daysPerWeek: number | null;
   hoursPerDay: Decimal;
   manualTotalHours: Decimal;
+  actualHours: Decimal;
   estimatedStart: Date | null;
   estimatedEnd: Date | null;
   actualStart: Date | null;

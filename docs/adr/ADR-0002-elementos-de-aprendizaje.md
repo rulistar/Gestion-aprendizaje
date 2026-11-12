@@ -32,6 +32,9 @@ Espacio de trabajo
 | Inicio y fin reales | Se llenan solos al pasar a En curso y a Terminado; **se pueden corregir** |
 | Estado | No iniciado, En curso, Pausado, Cancelado, Terminado (los de Gestor de Proyectos) |
 | Prioridad | Alta, Media (por omisión) o Baja, como la de los proyectos en Gestor de Proyectos (HU-10, PO 2026-11-08) |
+| Autor y Género | Catálogos propios del espacio, como los demás (HU-11, PO 2026-11-08) |
+| Número de páginas | Entero mayor que 0 (HU-11) |
+| Horas reales | Capturadas a mano, en todos los tipos, para compararlas con las estimadas (HU-11) |
 | Notas | Texto libre |
 
 **Actividad:** nombre, tipo de actividad (catálogo; por omisión video/lección, lectura, ejercicio, quiz, proyecto, examen), duración en minutos, estado (Pendiente, En curso, Pausada, Hecha, Cancelada, como las tareas de Gestor de Proyectos) y fechas estimadas y reales.
