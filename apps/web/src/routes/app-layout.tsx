@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from '@tanstack/react-router';
-import { ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown, LogOut, UserRound } from 'lucide-react';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
   DropdownMenu,
@@ -63,6 +63,10 @@ function UserMenu() {
           <span className="block text-xs text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => void navigate({ to: '/perfil' })}>
+          <UserRound aria-hidden />
+          Mi perfil
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={handleLogout} disabled={logout.isPending}>
           <LogOut aria-hidden />
           Cerrar sesión

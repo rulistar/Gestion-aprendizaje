@@ -51,10 +51,10 @@ API **3001** · web **5174** (proxy de `/api` → 3001) · PostgreSQL **5433** (
 ```
 apps/
   web/                React + Vite. Proxy de /api → http://127.0.0.1:3001 en desarrollo
-    src/router.tsx      rutas en código (TanStack Router): /login e /invitacion públicas; la ruta "app" protege a sus hijas (/, /w/$workspaceId, /w/$workspaceId/catalogos, /w/$workspaceId/tipos, /w/$workspaceId/elementos[/nuevo|/$elementId], /w/$workspaceId/papelera, /w/$workspaceId/miembros).
+    src/router.tsx      rutas en código (TanStack Router): /login e /invitacion públicas; la ruta "app" protege a sus hijas (/, /perfil, /w/$workspaceId, /w/$workspaceId/catalogos, /w/$workspaceId/tipos, /w/$workspaceId/elementos[/nuevo|/$elementId], /w/$workspaceId/papelera, /w/$workspaceId/miembros).
                         getRouteApi usa el id: "/app/w/..."
     src/lib/api.ts      apiFetch(): llamadas a /api/v1 validadas con esquemas de shared; errores → ApiError
-    src/lib/auth.ts     meQueryOptions (GET /auth/me), useCurrentUser, useLogin, useLogout
+    src/lib/auth.ts     meQueryOptions (GET /auth/me), useCurrentUser, useLogin, useLogout; mi perfil (HU-14)
     src/lib/<mod>.ts    queryOptions + mutaciones de cada módulo; la ruta precarga con loader
     src/lib/use-schema-form.ts  formularios validados con el esquema de shared (FormData + errores por campo)
     src/lib/brand.ts    APP_NAME e initials() para avatares
@@ -75,6 +75,8 @@ apps/
     src/modules/<mod>/  un módulo por funcionalidad: <mod>.routes.ts, <mod>.test.ts
       auth/               POST /auth/login, POST /auth/logout, GET /auth/me; password.ts (Argon2id), tokens.ts (token + hash
                           SHA-256), session.ts (sesión en BD, cookie "sid", requireAuth, startSession)
+                          profile.*: mi perfil (HU-14): PATCH /auth/me/name, PUT /auth/me/email y /auth/me/password
+                          (piden la contraseña actual, límite de intentos, cierran mis demás sesiones)
       workspaces/         GET/POST/PATCH /workspaces[/:id], /:id/members (PATCH rol, DELETE quitar).
                           access.ts: requireMembership / requirePermission (rol); request.membership = mi acceso
       invitations/        GET/POST/DELETE /workspaces/:id/invitations, solo Admin; el token se devuelve una vez.

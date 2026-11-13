@@ -3,6 +3,7 @@ import Fastify, { type FastifyServerOptions } from 'fastify';
 import type { Db } from './db/client.js';
 import type { WorkspaceAccess } from './modules/workspaces/access.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { profileRoutes } from './modules/auth/profile.routes.js';
 import { catalogsRoutes } from './modules/catalogs/catalogs.routes.js';
 import { elementTypesRoutes } from './modules/element-types/element-types.routes.js';
 import { elementsRoutes } from './modules/elements/elements.routes.js';
@@ -73,6 +74,7 @@ export function buildApp({
   // Cada módulo registra sus rutas bajo el prefijo versionado de la API
   void app.register(healthRoutes, { prefix: '/api/v1' });
   void app.register(authRoutes, { prefix: '/api/v1' });
+  void app.register(profileRoutes, { prefix: '/api/v1' });
   void app.register(workspacesRoutes, { prefix: '/api/v1' });
   void app.register(invitationsRoutes, { prefix: '/api/v1' });
   void app.register(acceptInvitationRoutes, { prefix: '/api/v1' });
