@@ -1,7 +1,7 @@
 5 |5 |5 |5 |5 |5 |# Product Backlog
 
 > Lista priorizada de todo lo que el producto debe hacer. La ordena el **Product Owner**. Nada entra al desarrollo sin estar aquí.
-> Última actualización: 2026-11-12 (cierre del Sprint 5: HU-10 a HU-15 terminadas).
+> Última actualización: 2026-11-12 (Sprint 6 planeado: HU-06 y HU-08).
 
 ## Cómo leer este documento
 
@@ -54,9 +54,9 @@
 | INT-01 | 🔴 | ADR de integración con Gestor de Proyectos: qué se sincroniza, en qué dirección, tokens de API y webhooks ([ADR-0004](adr/ADR-0004-integracion-gestor-proyectos.md)) | 3 | 3 |
 | INT-02 | 🔴 | Como usuario, quiero enviar un elemento a Gestor de Proyectos y que sus cambios lleguen solos, para no capturar dos veces (lado de Aprendizaje: bandeja de salida, vínculos y envío, probado contra un receptor de prueba) | 8 | 4 |
 | INT-04 | 🔴 | Conectar la sincronización con Gestor de Proyectos real y activarla en producción (requiere TEC-08 y HU-18 de Proyectos, en su v2) | 3 | — |
-| HU-06 | 🟡 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | — |
+| HU-06 | 🟡 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | 6 |
 | HU-07 | 🟡 | Papelera: borrado lógico restaurable; físico solo desde la papelera (Admin) | 3 | 4 |
-| HU-08 | 🟢 | Tablero por estado y gráficas (elementos por mes de término) | 5 | — |
+| HU-08 | 🟢 | Tablero por estado y gráficas (elementos por mes de término) | 5 | 6 |
 | HU-10 | 🟡 | Como usuario, quiero darle prioridad (Alta, Media, Baja) a cada elemento y filtrar por ella, para saber qué estudiar primero (también llega a la prioridad del proyecto en Gestor de Proyectos) | 2 | 5 |
 | HU-11 | 🟡 | Como usuario, quiero registrar autor, género, número de páginas y horas reales, para que la ficha de un libro tenga sus datos y pueda comparar horas estimadas contra reales (Autor y Género: catálogos nuevos; horas reales: todos los tipos) | 5 | 5 |
 | HU-12 | 🟡 | Como Admin, quiero elegir qué campos muestra cada tipo de elemento, para que una Lectura no muestre lo que no usa (nivel, semanas, días por semana…). Incluye dejar Lectura como la pidió el PO, también en los espacios que ya existen | 3 | 5 |
@@ -67,4 +67,4 @@
 
 ## Pendientes de definir (al escribir las historias)
 
-- Lista inicial de **tipos de actividad** (propuesta: la del prototipo).
+- Ninguno por ahora. Las decisiones de HU-06 y HU-08 se toman al empezar cada una (ver el Sprint 6).
