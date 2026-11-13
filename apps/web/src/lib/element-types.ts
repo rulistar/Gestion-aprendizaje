@@ -2,6 +2,7 @@ import {
   elementTypeListSchema,
   elementTypeSchema,
   type CreateElementTypeInput,
+  type ElementField,
   type FieldLabels,
 } from '@aprendizaje/shared';
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -40,6 +41,7 @@ export function useUpdateElementType(workspaceId: string) {
       typeId: string;
       name?: string;
       labels?: FieldLabels;
+      hiddenFields?: ElementField[];
       archived?: boolean;
     }) =>
       apiFetch(`${elementTypesPath(workspaceId)}/${typeId}`, {

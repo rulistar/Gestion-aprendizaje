@@ -3,13 +3,14 @@ import {
   DEFAULT_FIELD_LABELS,
   ELEMENT_FIELDS,
   fieldLabelsFormSchema,
+  HIDEABLE_FIELDS,
   roleHasPermission,
   type ElementField,
   type ElementType,
 } from '@aprendizaje/shared';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import { Archive, ArchiveRestore, Pencil, Plus, Tags } from 'lucide-react';
+import { Archive, ArchiveRestore, Eye, Pencil, Plus, Tags } from 'lucide-react';
 import { useState } from 'react';
 import { FieldError } from '@/components/field-error';
 import { RenameForm } from '@/components/rename-form';
@@ -41,8 +42,8 @@ export function ElementTypesPage() {
       <div>
         <h1 className="text-2xl font-bold">Tipos de elemento</h1>
         <p className="text-sm text-muted-foreground">
-          Cada tipo puede llamar a los campos de la ficha con sus propias palabras. Solo cambia el
-          nombre: las reglas del campo siguen siendo las mismas.
+          Cada tipo puede llamar a los campos de la ficha con sus propias palabras y ocultar los que
+          no usa. Solo cambia cómo se ve: las reglas del campo siguen siendo las mismas.
         </p>
       </div>
       {canManage && <AddTypeForm workspaceId={workspaceId} />}
@@ -106,7 +107,8 @@ function TypeCard({
 }) {
   const update = useUpdateElementType(workspaceId);
   const [renaming, setRenaming] = useState(false);
-  const [editingLabels, setEditingLabels] = useState(false);
+  const [editing, setEditing] = useState<'labels' | 'fields' | null>(null);
+  const toggle = (what: 'labels' | 'fields') => setEditing((open) => (open === what ? null : what));
   const own = ELEMENT_FIELDS.filter((field) => type.labels[field] !== undefined);
 
   return (
@@ -142,11 +144,20 @@ function TypeCard({
               <Button
                 size="sm"
                 variant="ghost"
-                aria-expanded={editingLabels}
-                onClick={() => setEditingLabels((open) => !open)}
+                aria-expanded={editing === 'labels'}
+                onClick={() => toggle('labels')}
               >
                 <Tags aria-hidden />
                 Etiquetas
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-expanded={editing === 'fields'}
+                onClick={() => toggle('fields')}
+              >
+                <Eye aria-hidden />
+                Campos
               </Button>
               <Button
                 size="sm"
@@ -182,19 +193,25 @@ function TypeCard({
                 .map((field) => `${DEFAULT_FIELD_LABELS[field]} → ${type.labels[field]}`)
                 .join(' · ')}
         </CardDescription>
+        <CardDescription>
+          {type.hiddenFields.length === 0
+            ? 'Muestra todos los campos.'
+            : `Oculta: ${type.hiddenFields.map((field) => DEFAULT_FIELD_LABELS[field]).join(', ')}.`}
+        </CardDescription>
         {update.error && (
           <p role="alert" className="text-sm text-destructive">
             {update.error.message}
           </p>
         )}
       </CardHeader>
-      {editingLabels && (
+      {editing === 'labels' && (
         <CardContent>
-          <LabelsForm
-            workspaceId={workspaceId}
-            type={type}
-            onClose={() => setEditingLabels(false)}
-          />
+          <LabelsForm workspaceId={workspaceId} type={type} onClose={() => setEditing(null)} />
+        </CardContent>
+      )}
+      {editing === 'fields' && (
+        <CardContent>
+          <FieldsForm workspaceId={workspaceId} type={type} onClose={() => setEditing(null)} />
         </CardContent>
       )}
     </Card>
@@ -243,6 +260,69 @@ function LabelsForm({
       <div className="flex gap-2">
         <Button type="submit" disabled={update.isPending}>
           Guardar etiquetas
+        </Button>
+        <Button type="button" variant="ghost" onClick={onClose}>
+          Cancelar
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+/** Qué campos muestra la ficha de este tipo (HU-12). Nombre, estado y prioridad, siempre */
+function FieldsForm({
+  workspaceId,
+  type,
+  onClose,
+}: {
+  workspaceId: string;
+  type: ElementType;
+  onClose: () => void;
+}) {
+  const update = useUpdateElementType(workspaceId);
+  const [hidden, setHidden] = useState<ElementField[]>(type.hiddenFields);
+  const labels = { ...DEFAULT_FIELD_LABELS, ...type.labels };
+
+  return (
+    <form
+      className="grid gap-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        update.mutate({ typeId: type.id, hiddenFields: hidden }, { onSuccess: onClose });
+      }}
+    >
+      <p className="text-sm text-muted-foreground">
+        Marca los campos que muestra su ficha. Ocultar uno no borra lo que ya tenga capturado.
+        Nombre, estado y prioridad se muestran siempre.
+      </p>
+      <fieldset className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <legend className="sr-only">Campos que muestra {type.name}</legend>
+        {HIDEABLE_FIELDS.map((field) => (
+          <label key={field} className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 accent-primary"
+              checked={!hidden.includes(field)}
+              onChange={(event) =>
+                setHidden((current) =>
+                  event.target.checked
+                    ? current.filter((item) => item !== field)
+                    : [...current, field],
+                )
+              }
+            />
+            {labels[field]}
+          </label>
+        ))}
+      </fieldset>
+      {update.error && (
+        <p role="alert" className="text-sm text-destructive">
+          {update.error.message}
+        </p>
+      )}
+      <div className="flex gap-2">
+        <Button type="submit" disabled={update.isPending}>
+          Guardar campos
         </Button>
         <Button type="button" variant="ghost" onClick={onClose}>
           Cancelar

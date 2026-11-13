@@ -8,10 +8,12 @@ import {
   ELEMENT_STATUSES,
   elementFichaFormSchema,
   resolveFieldLabels,
+  showsField,
   type CatalogItem,
   type CatalogKind,
   type Element,
   type ElementFicha,
+  type ElementField,
   type ElementType,
 } from '@aprendizaje/shared';
 import { useState, type ReactNode } from 'react';
@@ -31,13 +33,40 @@ function selectable<T extends { id: string; archived: boolean }>(
   return items.filter((item) => !item.archived || item.id === currentId);
 }
 
+const DURATION_FIELDS: ElementField[] = [
+  'durationWeeks',
+  'daysPerWeek',
+  'hoursPerDay',
+  'totalHours',
+  'actualHours',
+];
+const DATE_FIELDS: ElementField[] = ['estimatedStart', 'estimatedEnd', 'actualStart', 'actualEnd'];
+
 /** Texto de un campo numérico a número; null si no se puede calcular con él */
 function toNumber(text: string) {
   const value = Number(text);
   return text.trim() === '' || Number.isNaN(value) ? null : value;
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/**
+ * Un campo que el tipo oculta (HU-12) viaja igual, con el valor que ya tenía: ocultar es solo de
+ * presentación y guardar no debe borrar lo capturado antes.
+ */
+function Kept({ name, value }: { name: string; value: string | number | null | undefined }) {
+  return <input type="hidden" name={name} value={value ?? ''} />;
+}
+
+function Section({
+  title,
+  visible = true,
+  children,
+}: {
+  title: string;
+  /** Sin campos visibles no se muestra, pero sus valores ocultos sí viajan */
+  visible?: boolean;
+  children: ReactNode;
+}) {
+  if (!visible) return <>{children}</>;
   return (
     <fieldset className="grid gap-3">
       <legend className="mb-1 text-sm font-semibold">{title}</legend>
@@ -81,7 +110,9 @@ export function ElementForm({
   const [hours, setHours] = useState(element?.hoursPerDay?.toString() ?? '');
 
   const form = useSchemaForm(elementFichaFormSchema, ELEMENT_FORM_FIELDS, (data) => onSubmit(data));
-  const labels = resolveFieldLabels(types.find((type) => type.id === typeId)?.labels ?? {});
+  const selectedType = types.find((type) => type.id === typeId);
+  const labels = resolveFieldLabels(selectedType?.labels ?? {});
+  const shows = (field: ElementField) => showsField(selectedType?.hiddenFields ?? [], field);
 
   const calculated = computeTotalHours({
     durationWeeks: toNumber(weeks),
@@ -95,6 +126,9 @@ export function ElementForm({
     kind: CatalogKind,
     label: string,
   ) {
+    if (!shows(field.replace(/Id$/, '') as ElementField)) {
+      return <Kept name={field} value={element?.[field]} />;
+    }
     const options = selectable(
       catalogs.filter((item) => item.kind === kind),
       element?.[field],
@@ -120,6 +154,7 @@ export function ElementForm({
     field: 'estimatedStart' | 'estimatedEnd' | 'actualStart' | 'actualEnd',
     label: string,
   ) {
+    if (!shows(field)) return <Kept name={field} value={element?.[field]} />;
     return (
       <div className="grid gap-1.5">
         <Label htmlFor={form.idOf(field)}>{label}</Label>
@@ -166,17 +201,21 @@ export function ElementForm({
           {catalogField('levelId', 'LEVEL', labels.level)}
           {catalogField('authorId', 'AUTHOR', labels.author)}
           {catalogField('genreId', 'GENRE', labels.genre)}
-          <div className="grid gap-1.5">
-            <Label htmlFor={form.idOf('pages')}>{labels.pages}</Label>
-            <Input
-              {...form.field('pages')}
-              type="number"
-              min="1"
-              step="1"
-              defaultValue={element?.pages ?? ''}
-            />
-            <FieldError {...form.errorProps('pages')} />
-          </div>
+          {shows('pages') ? (
+            <div className="grid gap-1.5">
+              <Label htmlFor={form.idOf('pages')}>{labels.pages}</Label>
+              <Input
+                {...form.field('pages')}
+                type="number"
+                min="1"
+                step="1"
+                defaultValue={element?.pages ?? ''}
+              />
+              <FieldError {...form.errorProps('pages')} />
+            </div>
+          ) : (
+            <Kept name="pages" value={element?.pages} />
+          )}
           <div className="grid gap-1.5">
             <Label htmlFor={form.idOf('status')}>{labels.status}</Label>
             <Select {...form.field('status')} defaultValue={element?.status ?? 'NOT_STARTED'}>
@@ -201,90 +240,121 @@ export function ElementForm({
           </div>
         </Section>
 
-        <Section title="Duración">
-          <div className="grid gap-1.5">
-            <Label htmlFor={form.idOf('durationWeeks')}>{labels.durationWeeks}</Label>
-            <Input
-              {...form.field('durationWeeks')}
-              type="number"
-              min="0"
-              step="any"
-              value={weeks}
-              onChange={(event) => setWeeks(event.target.value)}
-            />
-            <FieldError {...form.errorProps('durationWeeks')} />
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor={form.idOf('daysPerWeek')}>{labels.daysPerWeek}</Label>
-            <Input
-              {...form.field('daysPerWeek')}
-              type="number"
-              min="1"
-              max="7"
-              step="1"
-              value={days}
-              onChange={(event) => setDays(event.target.value)}
-            />
-            <FieldError {...form.errorProps('daysPerWeek')} />
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor={form.idOf('hoursPerDay')}>{labels.hoursPerDay}</Label>
-            <Input
-              {...form.field('hoursPerDay')}
-              type="number"
-              min="0"
-              step="any"
-              value={hours}
-              onChange={(event) => setHours(event.target.value)}
-            />
-            <FieldError {...form.errorProps('hoursPerDay')} />
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor={form.idOf('manualTotalHours')}>{labels.totalHours}</Label>
-            <Input
-              {...form.field('manualTotalHours')}
-              type="number"
-              min="0"
-              step="any"
-              defaultValue={element?.manualTotalHours ?? ''}
-              placeholder={calculated === null ? '' : String(calculated)}
-            />
-            <p className="text-xs text-muted-foreground">
-              {calculated === null
-                ? 'Se calculan al llenar la duración, o captúralas aquí.'
-                : `Calculadas: ${calculated} h. Si capturas otro valor, manda el tuyo.`}
-            </p>
-            <FieldError {...form.errorProps('manualTotalHours')} />
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor={form.idOf('actualHours')}>{labels.actualHours}</Label>
-            <Input
-              {...form.field('actualHours')}
-              type="number"
-              min="0"
-              step="any"
-              defaultValue={element?.actualHours ?? ''}
-            />
-            <p className="text-xs text-muted-foreground">Las que de verdad te llevó.</p>
-            <FieldError {...form.errorProps('actualHours')} />
-          </div>
+        <Section title="Duración" visible={DURATION_FIELDS.some((field) => shows(field))}>
+          {shows('durationWeeks') ? (
+            <div className="grid gap-1.5">
+              <Label htmlFor={form.idOf('durationWeeks')}>{labels.durationWeeks}</Label>
+              <Input
+                {...form.field('durationWeeks')}
+                type="number"
+                min="0"
+                step="any"
+                value={weeks}
+                onChange={(event) => setWeeks(event.target.value)}
+              />
+              <FieldError {...form.errorProps('durationWeeks')} />
+            </div>
+          ) : (
+            <Kept name="durationWeeks" value={weeks} />
+          )}
+          {shows('daysPerWeek') ? (
+            <div className="grid gap-1.5">
+              <Label htmlFor={form.idOf('daysPerWeek')}>{labels.daysPerWeek}</Label>
+              <Input
+                {...form.field('daysPerWeek')}
+                type="number"
+                min="1"
+                max="7"
+                step="1"
+                value={days}
+                onChange={(event) => setDays(event.target.value)}
+              />
+              <FieldError {...form.errorProps('daysPerWeek')} />
+            </div>
+          ) : (
+            <Kept name="daysPerWeek" value={days} />
+          )}
+          {shows('hoursPerDay') ? (
+            <div className="grid gap-1.5">
+              <Label htmlFor={form.idOf('hoursPerDay')}>{labels.hoursPerDay}</Label>
+              <Input
+                {...form.field('hoursPerDay')}
+                type="number"
+                min="0"
+                step="any"
+                value={hours}
+                onChange={(event) => setHours(event.target.value)}
+              />
+              <FieldError {...form.errorProps('hoursPerDay')} />
+            </div>
+          ) : (
+            <Kept name="hoursPerDay" value={hours} />
+          )}
+          {shows('totalHours') ? (
+            <div className="grid gap-1.5">
+              <Label htmlFor={form.idOf('manualTotalHours')}>{labels.totalHours}</Label>
+              <Input
+                {...form.field('manualTotalHours')}
+                type="number"
+                min="0"
+                step="any"
+                defaultValue={element?.manualTotalHours ?? ''}
+                placeholder={calculated === null ? '' : String(calculated)}
+              />
+              <p className="text-xs text-muted-foreground">
+                {calculated === null
+                  ? 'Se calculan al llenar la duración, o captúralas aquí.'
+                  : `Calculadas: ${calculated} h. Si capturas otro valor, manda el tuyo.`}
+              </p>
+              <FieldError {...form.errorProps('manualTotalHours')} />
+            </div>
+          ) : (
+            <Kept name="manualTotalHours" value={element?.manualTotalHours} />
+          )}
+          {shows('actualHours') ? (
+            <div className="grid gap-1.5">
+              <Label htmlFor={form.idOf('actualHours')}>{labels.actualHours}</Label>
+              <Input
+                {...form.field('actualHours')}
+                type="number"
+                min="0"
+                step="any"
+                defaultValue={element?.actualHours ?? ''}
+              />
+              <p className="text-xs text-muted-foreground">Las que de verdad te llevó.</p>
+              <FieldError {...form.errorProps('actualHours')} />
+            </div>
+          ) : (
+            <Kept name="actualHours" value={element?.actualHours} />
+          )}
         </Section>
 
-        <Section title="Fechas">
+        <Section title="Fechas" visible={DATE_FIELDS.some((field) => shows(field))}>
           {dateField('estimatedStart', labels.estimatedStart)}
           {dateField('estimatedEnd', labels.estimatedEnd)}
-          <p className="self-center text-xs text-muted-foreground sm:col-span-2 lg:col-span-1">
-            Las fechas reales se llenan solas al pasar a En curso y a Terminado. Puedes corregirlas.
-          </p>
+          {(shows('actualStart') || shows('actualEnd')) && (
+            <p className="self-center text-xs text-muted-foreground sm:col-span-2 lg:col-span-1">
+              Las fechas reales se llenan solas al pasar a En curso y a Terminado. Puedes
+              corregirlas.
+            </p>
+          )}
           {dateField('actualStart', labels.actualStart)}
           {dateField('actualEnd', labels.actualEnd)}
         </Section>
 
-        <div className="grid gap-1.5">
-          <Label htmlFor={form.idOf('notes')}>{labels.notes}</Label>
-          <Textarea {...form.field('notes')} defaultValue={element?.notes ?? ''} maxLength={5000} />
-          <FieldError {...form.errorProps('notes')} />
-        </div>
+        {shows('notes') ? (
+          <div className="grid gap-1.5">
+            <Label htmlFor={form.idOf('notes')}>{labels.notes}</Label>
+            <Textarea
+              {...form.field('notes')}
+              defaultValue={element?.notes ?? ''}
+              maxLength={5000}
+            />
+            <FieldError {...form.errorProps('notes')} />
+          </div>
+        ) : (
+          <Kept name="notes" value={element?.notes} />
+        )}
 
         {error && (
           <p role="alert" className="text-sm text-destructive">
