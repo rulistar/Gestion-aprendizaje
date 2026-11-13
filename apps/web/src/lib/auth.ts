@@ -1,4 +1,11 @@
-import { currentUserSchema, type CurrentUser, type LoginRequest } from '@aprendizaje/shared';
+import {
+  currentUserSchema,
+  type ChangeMyEmailInput,
+  type ChangeMyPasswordInput,
+  type CurrentUser,
+  type LoginRequest,
+  type UpdateMyNameInput,
+} from '@aprendizaje/shared';
 import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { ApiError, apiFetch } from './api';
 
@@ -45,5 +52,39 @@ export function useLogout() {
       queryClient.clear();
       queryClient.setQueryData(meQueryKey, null);
     },
+  });
+}
+
+// --- Mi perfil (HU-14): la API responde con el usuario al día y se guarda en la sesión ---
+
+export function useUpdateMyName() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateMyNameInput) =>
+      apiFetch('/auth/me/name', { method: 'PATCH', body: data, schema: currentUserSchema }),
+    onSuccess: (user) => {
+      queryClient.setQueryData(meQueryKey, user);
+      // Mi nombre aparece en las listas de miembros
+      return queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+    },
+  });
+}
+
+export function useChangeMyEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ChangeMyEmailInput) =>
+      apiFetch('/auth/me/email', { method: 'PUT', body: data, schema: currentUserSchema }),
+    onSuccess: (user) => {
+      queryClient.setQueryData(meQueryKey, user);
+      return queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+    },
+  });
+}
+
+export function useChangeMyPassword() {
+  return useMutation({
+    mutationFn: (data: ChangeMyPasswordInput) =>
+      apiFetch('/auth/me/password', { method: 'PUT', body: data }),
   });
 }

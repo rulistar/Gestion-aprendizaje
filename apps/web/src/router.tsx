@@ -27,6 +27,7 @@ import { HomePage } from '@/routes/home-page';
 import { InvitationPage } from '@/routes/invitation-page';
 import { LoginPage } from '@/routes/login-page';
 import { MembersPage } from '@/routes/members-page';
+import { ProfilePage } from '@/routes/profile-page';
 import { TrashPage } from '@/routes/trash-page';
 import { WorkspacePage } from '@/routes/workspace-page';
 
@@ -34,6 +35,7 @@ import { WorkspacePage } from '@/routes/workspace-page';
  * Rutas definidas en código:
  *
  *   /                 protegida: lleva al primer espacio; si no hay ninguno, muestra un aviso
+ *   /perfil           protegida: mi nombre, correo y contraseña (HU-14)
  *   /w/$workspaceId   protegida: un espacio de trabajo
  *   /w/$workspaceId/catalogos  protegida: los catálogos del espacio (HU-01)
  *   /w/$workspaceId/tipos      protegida: los tipos de elemento del espacio (HU-02)
@@ -125,6 +127,14 @@ const homeRoute = createRoute({
     }
   },
   component: HomePage,
+});
+
+/** Mi perfil (HU-14): fuera de los espacios; el usuario ya está en caché por la ruta "app" */
+const profileRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/perfil',
+  component: ProfilePage,
+  errorComponent: ErrorPage,
 });
 
 const workspaceRoute = createRoute({
@@ -233,6 +243,7 @@ const routeTree = rootRoute.addChildren([
   invitationRoute,
   appRoute.addChildren([
     homeRoute,
+    profileRoute,
     workspaceRoute,
     catalogsRoute,
     elementTypesRoute,
