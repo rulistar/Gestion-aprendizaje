@@ -80,6 +80,16 @@ export function LoginPage() {
             <Button type="submit" size="lg" disabled={login.isPending} className="h-11 w-full">
               {login.isPending ? 'Entrando…' : 'Iniciar sesión'}
             </Button>
+            {/* Sin servicio de correo: el Admin del sistema genera el enlace (HU-15) */}
+            <details className="text-sm">
+              <summary className="cursor-pointer font-medium text-primary">
+                ¿Olvidaste tu contraseña?
+              </summary>
+              <p className="mt-2 text-muted-foreground">
+                Pídele al Admin del sistema un enlace para crear una nueva. Llega por el medio que
+                acuerden (correo, chat) y sirve una vez, durante 48 horas.
+              </p>
+            </details>
             {/* Registro solo por invitación: no hay botón de "crear cuenta" */}
             <p className="rounded-lg bg-accent p-3.5 text-sm text-accent-foreground">
               ¿No tienes cuenta? Pide al Admin de tu espacio de trabajo que te envíe una invitación.

@@ -14,6 +14,8 @@ import { invitationsRoutes } from './modules/invitations/invitations.routes.js';
 import { workspacesRoutes } from './modules/workspaces/workspaces.routes.js';
 import { syncRoutes } from './modules/sync/sync.routes.js';
 import { trashRoutes } from './modules/trash/trash.routes.js';
+import { passwordResetRoutes } from './modules/users/password-reset.routes.js';
+import { usersRoutes } from './modules/users/users.routes.js';
 import { registerSecurity, type SecurityOptions } from './security.js';
 import { registerWebApp } from './web/web-app.js';
 
@@ -75,6 +77,8 @@ export function buildApp({
   void app.register(healthRoutes, { prefix: '/api/v1' });
   void app.register(authRoutes, { prefix: '/api/v1' });
   void app.register(profileRoutes, { prefix: '/api/v1' });
+  void app.register(usersRoutes, { prefix: '/api/v1' });
+  void app.register(passwordResetRoutes, { prefix: '/api/v1' });
   void app.register(workspacesRoutes, { prefix: '/api/v1' });
   void app.register(invitationsRoutes, { prefix: '/api/v1' });
   void app.register(acceptInvitationRoutes, { prefix: '/api/v1' });

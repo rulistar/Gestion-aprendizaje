@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from '@tanstack/react-router';
-import { ChevronDown, LogOut, UserRound } from 'lucide-react';
+import { ChevronDown, LogOut, UserRound, UsersRound } from 'lucide-react';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
   DropdownMenu,
@@ -67,6 +67,13 @@ function UserMenu() {
           <UserRound aria-hidden />
           Mi perfil
         </DropdownMenuItem>
+        {/* Solo el Admin del sistema administra cuentas (HU-15); lo exige también la API */}
+        {user.isSystemAdmin && (
+          <DropdownMenuItem onSelect={() => void navigate({ to: '/usuarios' })}>
+            <UsersRound aria-hidden />
+            Usuarios del sistema
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onSelect={handleLogout} disabled={logout.isPending}>
           <LogOut aria-hidden />
           Cerrar sesión

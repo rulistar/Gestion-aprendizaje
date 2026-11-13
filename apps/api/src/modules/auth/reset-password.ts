@@ -34,6 +34,8 @@ export async function resetPasswordByEmail(db: Db, email: string, password: stri
   await db.$transaction([
     db.user.update({ where: { id: user.id }, data: { passwordHash, updatedById: null } }),
     db.session.deleteMany({ where: { userId: user.id } }),
+    // Un enlace para restablecer (HU-15) que no se usó deja de servir
+    db.passwordReset.deleteMany({ where: { userId: user.id, usedAt: null } }),
   ]);
   return user;
 }

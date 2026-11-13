@@ -40,9 +40,9 @@ Remove-Item Env:DATABASE_URL
 
 La variable de la terminal tiene prioridad sobre tu `.env`; al quitarla, `pnpm dev` vuelve a usar tu BD de Docker.
 
-### Olvidé mi contraseña (HU-09)
+### Olvidé mi contraseña (HU-09, HU-15)
 
-Se restablece desde tu PC, igual que el primer Admin. Pide el correo y la contraseña nueva sin mostrarla, y cierra las sesiones abiertas de esa cuenta:
+Si quien la olvidó es otra persona, el Admin del sistema le genera un enlace desde **Usuarios del sistema** (HU-15): sirve una vez, durante 48 horas. Si quien la olvidó es el propio Admin del sistema, nadie más puede generarle el enlace: se restablece desde tu PC, igual que el primer Admin. Pide el correo y la contraseña nueva sin mostrarla, y cierra las sesiones abiertas de esa cuenta:
 
 ```powershell
 $env:DATABASE_URL = '<cadena de Neon>'

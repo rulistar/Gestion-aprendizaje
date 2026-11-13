@@ -51,7 +51,7 @@ API **3001** · web **5174** (proxy de `/api` → 3001) · PostgreSQL **5433** (
 ```
 apps/
   web/                React + Vite. Proxy de /api → http://127.0.0.1:3001 en desarrollo
-    src/router.tsx      rutas en código (TanStack Router): /login e /invitacion públicas; la ruta "app" protege a sus hijas (/, /perfil, /w/$workspaceId, /w/$workspaceId/catalogos, /w/$workspaceId/tipos, /w/$workspaceId/elementos[/nuevo|/$elementId], /w/$workspaceId/papelera, /w/$workspaceId/miembros).
+    src/router.tsx      rutas en código (TanStack Router): /login, /invitacion y /restablecer públicas; la ruta "app" protege a sus hijas (/, /perfil, /usuarios, /w/$workspaceId, /w/$workspaceId/catalogos, /w/$workspaceId/tipos, /w/$workspaceId/elementos[/nuevo|/$elementId], /w/$workspaceId/papelera, /w/$workspaceId/miembros).
                         getRouteApi usa el id: "/app/w/..."
     src/lib/api.ts      apiFetch(): llamadas a /api/v1 validadas con esquemas de shared; errores → ApiError
     src/lib/auth.ts     meQueryOptions (GET /auth/me), useCurrentUser, useLogin, useLogout; mi perfil (HU-14)
@@ -64,6 +64,8 @@ apps/
     src/routes/         una página por archivo; leen la ruta con getRouteApi() para no importar router.tsx
                         members-page.tsx: miembros e invitaciones (HU-13); el enlace se muestra una sola vez
                         invitation-page.tsx: /invitacion#<token> (el token va tras "#": no llega al servidor)
+                        users-page.tsx: usuarios del sistema (HU-15); password-reset-page.tsx: /restablecer#<token>
+    src/components/copy-link-box.tsx  enlace de un solo uso para copiar (invitaciones y restablecer contraseña)
   api/                Fastify — monolito modular
     src/app.ts          buildApp(): crea la instancia sin abrir puerto (testeable con app.inject)
     src/server.ts       arranque + cierre ordenado
@@ -77,6 +79,11 @@ apps/
                           SHA-256), session.ts (sesión en BD, cookie "sid", requireAuth, startSession)
                           profile.*: mi perfil (HU-14): PATCH /auth/me/name, PUT /auth/me/email y /auth/me/password
                           (piden la contraseña actual, límite de intentos, cierran mis demás sesiones)
+      users/              usuarios del sistema (HU-15), solo el Admin del sistema: GET /users, PUT /users/:id/email
+                          (cierra sus sesiones), PATCH /users/:id/status (desactivar/reactivar; no a sí mismo),
+                          POST /users/:id/password-reset = enlace para restablecer la contraseña.
+                          password-reset.*: públicas POST /password-resets/preview|complete (un solo uso, 48 h,
+                          cierra sus sesiones e inicia sesión)
       workspaces/         GET/POST/PATCH /workspaces[/:id], /:id/members (PATCH rol, DELETE quitar).
                           access.ts: requireMembership / requirePermission (rol); request.membership = mi acceso
       invitations/        GET/POST/DELETE /workspaces/:id/invitations, solo Admin; el token se devuelve una vez.
