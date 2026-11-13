@@ -36,7 +36,7 @@ enum CatalogKind {
   LEVEL
   ACTIVITY_TYPE
   AUTHOR // HU-11
-  GENRE  // HU-11
+  GENRE // HU-11
 
   @@map("catalog_kind")
 }
@@ -124,32 +124,35 @@ model User {
   createdBy   User?    @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedBy   User?    @relation("UserUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
 
-  sessions    Session[]
-  memberships Membership[] @relation("MembershipUser")
+  sessions       Session[]
+  memberships    Membership[]    @relation("MembershipUser")
+  passwordResets PasswordReset[] @relation("PasswordResetUser")
 
   // Relaciones inversas de trazabilidad
-  usersCreated       User[]       @relation("UserCreatedBy")
-  usersUpdated       User[]       @relation("UserUpdatedBy")
-  workspacesCreated  Workspace[]  @relation("WorkspaceCreatedBy")
-  workspacesUpdated  Workspace[]  @relation("WorkspaceUpdatedBy")
-  workspacesDeleted  Workspace[]  @relation("WorkspaceDeletedBy")
-  membershipsCreated Membership[] @relation("MembershipCreatedBy")
-  membershipsUpdated Membership[] @relation("MembershipUpdatedBy")
-  membershipsDeleted Membership[] @relation("MembershipDeletedBy")
-  invitationsAccepted Invitation[] @relation("InvitationAcceptedBy")
-  invitationsRevoked  Invitation[] @relation("InvitationRevokedBy")
-  invitationsCreated  Invitation[] @relation("InvitationCreatedBy")
-  invitationsUpdated  Invitation[] @relation("InvitationUpdatedBy")
-  catalogItemsCreated CatalogItem[] @relation("CatalogItemCreatedBy")
-  catalogItemsUpdated CatalogItem[] @relation("CatalogItemUpdatedBy")
-  elementTypesCreated ElementType[] @relation("ElementTypeCreatedBy")
-  elementTypesUpdated ElementType[] @relation("ElementTypeUpdatedBy")
-  elementsCreated Element[] @relation("ElementCreatedBy")
-  elementsUpdated Element[] @relation("ElementUpdatedBy")
-  elementsDeleted Element[] @relation("ElementDeletedBy")
-  nodesCreated ElementNode[] @relation("NodeCreatedBy")
-  nodesUpdated ElementNode[] @relation("NodeUpdatedBy")
-  nodesDeleted ElementNode[] @relation("NodeDeletedBy")
+  usersCreated          User[]          @relation("UserCreatedBy")
+  usersUpdated          User[]          @relation("UserUpdatedBy")
+  workspacesCreated     Workspace[]     @relation("WorkspaceCreatedBy")
+  workspacesUpdated     Workspace[]     @relation("WorkspaceUpdatedBy")
+  workspacesDeleted     Workspace[]     @relation("WorkspaceDeletedBy")
+  membershipsCreated    Membership[]    @relation("MembershipCreatedBy")
+  membershipsUpdated    Membership[]    @relation("MembershipUpdatedBy")
+  membershipsDeleted    Membership[]    @relation("MembershipDeletedBy")
+  passwordResetsCreated PasswordReset[] @relation("PasswordResetCreatedBy")
+  passwordResetsUpdated PasswordReset[] @relation("PasswordResetUpdatedBy")
+  invitationsAccepted   Invitation[]    @relation("InvitationAcceptedBy")
+  invitationsRevoked    Invitation[]    @relation("InvitationRevokedBy")
+  invitationsCreated    Invitation[]    @relation("InvitationCreatedBy")
+  invitationsUpdated    Invitation[]    @relation("InvitationUpdatedBy")
+  catalogItemsCreated   CatalogItem[]   @relation("CatalogItemCreatedBy")
+  catalogItemsUpdated   CatalogItem[]   @relation("CatalogItemUpdatedBy")
+  elementTypesCreated   ElementType[]   @relation("ElementTypeCreatedBy")
+  elementTypesUpdated   ElementType[]   @relation("ElementTypeUpdatedBy")
+  elementsCreated       Element[]       @relation("ElementCreatedBy")
+  elementsUpdated       Element[]       @relation("ElementUpdatedBy")
+  elementsDeleted       Element[]       @relation("ElementDeletedBy")
+  nodesCreated          ElementNode[]   @relation("NodeCreatedBy")
+  nodesUpdated          ElementNode[]   @relation("NodeUpdatedBy")
+  nodesDeleted          ElementNode[]   @relation("NodeDeletedBy")
 
   @@map("users")
 }
@@ -186,11 +189,11 @@ model Workspace {
   updatedBy   User?     @relation("WorkspaceUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   deletedBy   User?     @relation("WorkspaceDeletedBy", fields: [deletedById], references: [id], onDelete: Restrict)
 
-  memberships Membership[]
-  invitations Invitation[]
+  memberships  Membership[]
+  invitations  Invitation[]
   catalogItems CatalogItem[]
   elementTypes ElementType[]
-  elements Element[]
+  elements     Element[]
   elementNodes ElementNode[]
   syncLinks    SyncLink[]
   syncOutbox   SyncOutbox[]
@@ -295,16 +298,16 @@ model CatalogItem {
 /// Tipo de elemento (Curso, Lectura…): decide cómo se llama cada campo de la ficha (ADR-0002 §3).
 /// Como los catálogos, se archiva en lugar de borrarse.
 model ElementType {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  workspaceId String    @map("workspace_id") @db.Uuid
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  name        String
+  id           String    @id @default(uuid(7)) @db.Uuid
+  workspaceId  String    @map("workspace_id") @db.Uuid
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String
   /// Solo los nombres propios del tipo; lo valida fieldLabelsSchema de packages/shared
-  labels      Json      @default("{}") @db.JsonB
+  labels       Json      @default("{}") @db.JsonB
   /// Campos que la ficha de este tipo no muestra (HU-12); sus valores se conservan
-  hiddenFields String[] @default([]) @map("hidden_fields")
-  position    Int       @default(0)
-  archivedAt  DateTime? @map("archived_at") @db.Timestamptz(3)
+  hiddenFields String[]  @default([]) @map("hidden_fields")
+  position     Int       @default(0)
+  archivedAt   DateTime? @map("archived_at") @db.Timestamptz(3)
 
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -326,10 +329,10 @@ model ElementType {
 /// El tipo y los catálogos usan NoAction, no Restrict: se revisa al final de la instrucción, y así
 /// un espacio que se borre en cascada no choca con el orden en que se borran sus tablas.
 model Element {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  workspaceId String    @map("workspace_id") @db.Uuid
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  typeId      String    @map("type_id") @db.Uuid
+  id          String      @id @default(uuid(7)) @db.Uuid
+  workspaceId String      @map("workspace_id") @db.Uuid
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  typeId      String      @map("type_id") @db.Uuid
   type        ElementType @relation(fields: [typeId], references: [id], onDelete: NoAction)
   name        String
 
@@ -361,11 +364,11 @@ model Element {
   actualStart    DateTime? @map("actual_start") @db.Date
   actualEnd      DateTime? @map("actual_end") @db.Date
 
-  status   ElementStatus   @default(NOT_STARTED)
-  priority ElementPriority @default(MEDIUM)
-  notes    String?
+  status      ElementStatus   @default(NOT_STARTED)
+  priority    ElementPriority @default(MEDIUM)
+  notes       String?
   /// Se envía a Gestor de Proyectos y cada cambio llega solo (INT-02, ADR-0004)
-  syncEnabled Boolean @default(false) @map("sync_enabled")
+  syncEnabled Boolean         @default(false) @map("sync_enabled")
 
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -388,41 +391,41 @@ model Element {
 /// Una sola tabla: las columnas de cada clase quedan vacías en las demás. Un Curso usa las columnas
 /// de la ficha; una Actividad, las suyas y las de fechas. La API valida cada clase con su esquema.
 model ElementNode {
-  id          String      @id @default(uuid(7)) @db.Uuid
-  workspaceId String      @map("workspace_id") @db.Uuid
-  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  elementId   String      @map("element_id") @db.Uuid
-  element     Element     @relation(fields: [elementId], references: [id], onDelete: Cascade)
-  parentId    String?     @map("parent_id") @db.Uuid
-  parent      ElementNode? @relation("NodeChildren", fields: [parentId], references: [id], onDelete: NoAction)
+  id          String        @id @default(uuid(7)) @db.Uuid
+  workspaceId String        @map("workspace_id") @db.Uuid
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  elementId   String        @map("element_id") @db.Uuid
+  element     Element       @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  parentId    String?       @map("parent_id") @db.Uuid
+  parent      ElementNode?  @relation("NodeChildren", fields: [parentId], references: [id], onDelete: NoAction)
   children    ElementNode[] @relation("NodeChildren")
   kind        NodeKind
   /// 1 a 3. Se fija al crear: un nodo no cambia de padre, solo de lugar entre sus hermanos
   level       Int
-  position    Int         @default(0)
+  position    Int           @default(0)
   name        String
 
   // Ficha de un nodo Curso (misma definición que Element)
-  typeId     String?       @map("type_id") @db.Uuid
-  type       ElementType?  @relation(fields: [typeId], references: [id], onDelete: NoAction)
-  platformId String?       @map("platform_id") @db.Uuid
-  platform   CatalogItem?  @relation("NodePlatform", fields: [platformId], references: [id], onDelete: NoAction)
-  sponsorId  String?       @map("sponsor_id") @db.Uuid
-  sponsor    CatalogItem?  @relation("NodeSponsor", fields: [sponsorId], references: [id], onDelete: NoAction)
-  categoryId String?       @map("category_id") @db.Uuid
-  category   CatalogItem?  @relation("NodeCategory", fields: [categoryId], references: [id], onDelete: NoAction)
-  levelId    String?       @map("level_id") @db.Uuid
-  catalogLevel CatalogItem? @relation("NodeLevel", fields: [levelId], references: [id], onDelete: NoAction)
-  authorId   String?       @map("author_id") @db.Uuid
-  author     CatalogItem?  @relation("NodeAuthor", fields: [authorId], references: [id], onDelete: NoAction)
-  genreId    String?       @map("genre_id") @db.Uuid
-  genre      CatalogItem?  @relation("NodeGenre", fields: [genreId], references: [id], onDelete: NoAction)
-  pages      Int?
-  durationWeeks    Decimal? @map("duration_weeks") @db.Decimal(6, 2)
-  daysPerWeek      Int?     @map("days_per_week")
-  hoursPerDay      Decimal? @map("hours_per_day") @db.Decimal(4, 2)
-  manualTotalHours Decimal? @map("manual_total_hours") @db.Decimal(8, 2)
-  actualHours      Decimal? @map("actual_hours") @db.Decimal(8, 2)
+  typeId           String?          @map("type_id") @db.Uuid
+  type             ElementType?     @relation(fields: [typeId], references: [id], onDelete: NoAction)
+  platformId       String?          @map("platform_id") @db.Uuid
+  platform         CatalogItem?     @relation("NodePlatform", fields: [platformId], references: [id], onDelete: NoAction)
+  sponsorId        String?          @map("sponsor_id") @db.Uuid
+  sponsor          CatalogItem?     @relation("NodeSponsor", fields: [sponsorId], references: [id], onDelete: NoAction)
+  categoryId       String?          @map("category_id") @db.Uuid
+  category         CatalogItem?     @relation("NodeCategory", fields: [categoryId], references: [id], onDelete: NoAction)
+  levelId          String?          @map("level_id") @db.Uuid
+  catalogLevel     CatalogItem?     @relation("NodeLevel", fields: [levelId], references: [id], onDelete: NoAction)
+  authorId         String?          @map("author_id") @db.Uuid
+  author           CatalogItem?     @relation("NodeAuthor", fields: [authorId], references: [id], onDelete: NoAction)
+  genreId          String?          @map("genre_id") @db.Uuid
+  genre            CatalogItem?     @relation("NodeGenre", fields: [genreId], references: [id], onDelete: NoAction)
+  pages            Int?
+  durationWeeks    Decimal?         @map("duration_weeks") @db.Decimal(6, 2)
+  daysPerWeek      Int?             @map("days_per_week")
+  hoursPerDay      Decimal?         @map("hours_per_day") @db.Decimal(4, 2)
+  manualTotalHours Decimal?         @map("manual_total_hours") @db.Decimal(8, 2)
+  actualHours      Decimal?         @map("actual_hours") @db.Decimal(8, 2)
   status           ElementStatus?
   /// Solo en un Curso; las demás clases la dejan vacía (HU-10)
   priority         ElementPriority?
@@ -507,4 +510,25 @@ model SyncOutbox {
 
   @@index([status, nextAttemptAt])
   @@map("sync_outbox")
+}
+
+/// Enlace para crear una contraseña nueva (HU-15, como HU-54 de Gestor de Proyectos): lo genera el
+/// Admin del sistema, sirve una sola vez y caduca. En la BD solo queda el hash del token.
+model PasswordReset {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  user      User      @relation("PasswordResetUser", fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?  @map("created_by_id") @db.Uuid
+  updatedById String?  @map("updated_by_id") @db.Uuid
+  createdBy   User?    @relation("PasswordResetCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?    @relation("PasswordResetUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@map("password_resets")
 }

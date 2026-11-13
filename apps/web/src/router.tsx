@@ -27,8 +27,10 @@ import { HomePage } from '@/routes/home-page';
 import { InvitationPage } from '@/routes/invitation-page';
 import { LoginPage } from '@/routes/login-page';
 import { MembersPage } from '@/routes/members-page';
+import { PasswordResetPage } from '@/routes/password-reset-page';
 import { ProfilePage } from '@/routes/profile-page';
 import { TrashPage } from '@/routes/trash-page';
+import { UsersPage } from '@/routes/users-page';
 import { WorkspacePage } from '@/routes/workspace-page';
 
 /*
@@ -36,6 +38,7 @@ import { WorkspacePage } from '@/routes/workspace-page';
  *
  *   /                 protegida: lleva al primer espacio; si no hay ninguno, muestra un aviso
  *   /perfil           protegida: mi nombre, correo y contraseña (HU-14)
+ *   /usuarios         protegida, solo el Admin del sistema: las cuentas (HU-15)
  *   /w/$workspaceId   protegida: un espacio de trabajo
  *   /w/$workspaceId/catalogos  protegida: los catálogos del espacio (HU-01)
  *   /w/$workspaceId/tipos      protegida: los tipos de elemento del espacio (HU-02)
@@ -43,6 +46,7 @@ import { WorkspacePage } from '@/routes/workspace-page';
  *   /w/$workspaceId/miembros   protegida: miembros e invitaciones (HU-13)
  *   /login            pública; si ya hay sesión, redirige a /
  *   /invitacion#token pública: aceptar una invitación (HU-13); el token no llega al servidor
+ *   /restablecer#token pública: crear una contraseña nueva con el enlace del Admin (HU-15)
  */
 
 /**
@@ -102,6 +106,13 @@ const invitationRoute = createRoute({
   component: InvitationPage,
 });
 
+/** Pública: quien olvidó su contraseña no tiene sesión */
+const passwordResetRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/restablecer',
+  component: PasswordResetPage,
+});
+
 /** Ruta sin URL propia: protege a sus hijas y les da el marco (menú + barra superior) */
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -134,6 +145,14 @@ const profileRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/perfil',
   component: ProfilePage,
+  errorComponent: ErrorPage,
+});
+
+/** Usuarios del sistema (HU-15): la página misma avisa si no es el Admin del sistema */
+const usersRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/usuarios',
+  component: UsersPage,
   errorComponent: ErrorPage,
 });
 
@@ -241,9 +260,11 @@ const membersRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   loginRoute,
   invitationRoute,
+  passwordResetRoute,
   appRoute.addChildren([
     homeRoute,
     profileRoute,
+    usersRoute,
     workspaceRoute,
     catalogsRoute,
     elementTypesRoute,

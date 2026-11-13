@@ -62,11 +62,10 @@
 | HU-12 | 🟡 | Como Admin, quiero elegir qué campos muestra cada tipo de elemento, para que una Lectura no muestre lo que no usa (nivel, semanas, días por semana…). Incluye dejar Lectura como la pidió el PO, también en los espacios que ya existen | 3 | 5 |
 | HU-13 | 🟡 | Como Admin, quiero ver los miembros de un espacio, cambiar su rol o quitarlos, e invitar a alguien desde la web, para no usar la API a mano (la API ya existe: TEC-02) | 5 | 5 |
 | HU-14 | 🟡 | Como usuario, quiero cambiar mi nombre, mi correo y mi contraseña, para mantener mi cuenta al día (como HU-29 de Gestor de Proyectos) | 3 | 5 |
-| HU-15 | 🟡 | Como Admin del sistema, quiero ver las cuentas, cambiar un correo y desactivar o reactivar una cuenta, para administrar quién entra (como HU-30 de Gestor de Proyectos) | 3 | 5 |
+| HU-15 | 🟡 | Como Admin del sistema, quiero ver las cuentas, cambiar un correo, desactivar o reactivar una cuenta y generar un enlace para restablecer una contraseña, para administrar quién entra (como HU-30 y HU-54 de Gestor de Proyectos) | 5 | 5 |
 | INT-03 | 🟢 | Integración con Lexika (cuando exista) | — | — |
 
 ## Pendientes de definir (al escribir las historias)
 
 - Lista inicial de **tipos de actividad** (propuesta: la del prototipo).
-- ¿Restablecer una contraseña con un **enlace desde la web** (como HU-54 de Gestor de Proyectos)? Hoy se hace desde la terminal (HU-09). Podría sumarse a HU-15.
 - ¿Los demás tipos (Curso, Otro) también ocultan campos? Se decide al hacer HU-12.

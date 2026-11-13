@@ -9,8 +9,9 @@ import {
 } from '@aprendizaje/shared';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import { Check, Copy, MailPlus, UserMinus, X } from 'lucide-react';
+import { MailPlus, UserMinus, X } from 'lucide-react';
 import { useState } from 'react';
+import { CopyLinkBox } from '@/components/copy-link-box';
 import { FieldError } from '@/components/field-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -248,55 +249,17 @@ function InviteCard({ workspaceId }: { workspaceId: string }) {
             {create.error.message}
           </p>
         )}
-        {created && <CreatedLink {...created} onClose={() => setCreated(null)} />}
+        {created && (
+          <CopyLinkBox
+            link={created.link}
+            label="Enlace de la invitación"
+            onClose={() => setCreated(null)}
+          >
+            Enlace para <strong>{created.email}</strong>. Cópialo ahora: no se vuelve a mostrar.
+          </CopyLinkBox>
+        )}
       </CardContent>
     </Card>
-  );
-}
-
-function CreatedLink({
-  email,
-  link,
-  onClose,
-}: {
-  email: string;
-  link: string;
-  onClose: () => void;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-    } catch {
-      // Sin permiso para el portapapeles: el enlace sigue a la vista para copiarlo a mano
-      setCopied(false);
-    }
-  }
-
-  return (
-    <div role="status" className="grid gap-2 rounded-md border bg-muted/50 p-3">
-      <p className="text-sm">
-        Enlace para <strong>{email}</strong>. Cópialo ahora: no se vuelve a mostrar.
-      </p>
-      <div className="flex gap-2">
-        <Input
-          aria-label="Enlace de la invitación"
-          value={link}
-          readOnly
-          onFocus={(event) => event.target.select()}
-          className="font-mono text-xs"
-        />
-        <Button type="button" variant="outline" onClick={() => void copy()}>
-          {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
-          {copied ? 'Copiado' : 'Copiar'}
-        </Button>
-        <Button type="button" variant="ghost" aria-label="Cerrar el enlace" onClick={onClose}>
-          <X aria-hidden />
-        </Button>
-      </div>
-    </div>
   );
 }
 
