@@ -1,7 +1,7 @@
 5 |5 |5 |5 |5 |5 |# Product Backlog
 
 > Lista priorizada de todo lo que el producto debe hacer. La ordena el **Product Owner**. Nada entra al desarrollo sin estar aquí.
-> Última actualización: 2026-11-08 (Sprint 5 planeado: HU-10 a HU-15).
+> Última actualización: 2026-11-12 (cierre del Sprint 5: HU-10 a HU-15 terminadas).
 
 ## Cómo leer este documento
 
@@ -68,4 +68,3 @@
 ## Pendientes de definir (al escribir las historias)
 
 - Lista inicial de **tipos de actividad** (propuesta: la del prototipo).
-- ¿Los demás tipos (Curso, Otro) también ocultan campos? Se decide al hacer HU-12.
