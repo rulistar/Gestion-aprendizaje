@@ -13,6 +13,7 @@ import { catalogsQueryOptions } from '@/lib/catalogs';
 import { nodesQueryOptions } from '@/lib/element-nodes';
 import { elementTypesQueryOptions } from '@/lib/element-types';
 import { elementQueryOptions, elementsQueryOptions } from '@/lib/elements';
+import { membersQueryOptions } from '@/lib/members';
 import { trashQueryOptions } from '@/lib/trash';
 import { workspaceQueryOptions } from '@/lib/workspaces';
 import { AppLayout } from '@/routes/app-layout';
@@ -23,7 +24,9 @@ import { ElementTypesPage } from '@/routes/element-types-page';
 import { ElementsPage } from '@/routes/elements-page';
 import { ErrorPage, NotFoundPage } from '@/routes/error-page';
 import { HomePage } from '@/routes/home-page';
+import { InvitationPage } from '@/routes/invitation-page';
 import { LoginPage } from '@/routes/login-page';
+import { MembersPage } from '@/routes/members-page';
 import { TrashPage } from '@/routes/trash-page';
 import { WorkspacePage } from '@/routes/workspace-page';
 
@@ -35,7 +38,9 @@ import { WorkspacePage } from '@/routes/workspace-page';
  *   /w/$workspaceId/catalogos  protegida: los catálogos del espacio (HU-01)
  *   /w/$workspaceId/tipos      protegida: los tipos de elemento del espacio (HU-02)
  *   /w/$workspaceId/elementos[/nuevo|/$elementId]  protegidas: lista con filtros en la URL (HU-05) y ficha (HU-03)
+ *   /w/$workspaceId/miembros   protegida: miembros e invitaciones (HU-13)
  *   /login            pública; si ya hay sesión, redirige a /
+ *   /invitacion#token pública: aceptar una invitación (HU-13); el token no llega al servidor
  */
 
 /**
@@ -86,6 +91,13 @@ const loginRoute = createRoute({
     }
   },
   component: LoginPage,
+});
+
+/** Pública con o sin sesión: la página decide (crear cuenta, iniciar sesión o aceptar) */
+const invitationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/invitacion',
+  component: InvitationPage,
 });
 
 /** Ruta sin URL propia: protege a sus hijas y les da el marco (menú + barra superior) */
@@ -204,8 +216,21 @@ const trashRoute = createRoute({
   errorComponent: ErrorPage,
 });
 
+const membersRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/w/$workspaceId/miembros',
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(membersQueryOptions(params.workspaceId)),
+    ]),
+  component: MembersPage,
+  errorComponent: ErrorPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
+  invitationRoute,
   appRoute.addChildren([
     homeRoute,
     workspaceRoute,
@@ -215,6 +240,7 @@ const routeTree = rootRoute.addChildren([
     elementNewRoute,
     elementDetailRoute,
     trashRoute,
+    membersRoute,
   ]),
 ]);
 
