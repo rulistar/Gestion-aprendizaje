@@ -57,14 +57,18 @@ async function types(cookies: Cookies, workspaceId: string) {
 }
 
 describe('tipos iniciales', () => {
-  it('un espacio nuevo trae Curso, Lectura y Otro; Lectura llama Editorial a la plataforma', async () => {
+  it('un espacio nuevo trae Curso, Lectura y Otro; Lectura como la pidió el PO (HU-12)', async () => {
     const { ana, ws } = await setup();
 
     const items = await types(ana.cookies, ws.id);
 
     expect(items.map((t) => t.name)).toEqual(['Curso', 'Lectura', 'Otro']);
-    expect(items[0]?.labels).toEqual({});
-    expect(items[1]?.labels).toEqual({ platform: 'Editorial' });
+    expect(items[0]).toMatchObject({ labels: {}, hiddenFields: ['genre', 'pages'] });
+    expect(items[1]).toMatchObject({
+      labels: { name: 'Nombre del libro', platform: 'Editorial' },
+      hiddenFields: ['sponsor', 'category', 'level', 'durationWeeks', 'daysPerWeek', 'hoursPerDay'],
+    });
+    expect(items[2]?.hiddenFields).toEqual(['genre', 'pages']);
   });
 
   it('el primer Admin también los recibe en su espacio', async () => {
@@ -194,6 +198,49 @@ describe('PATCH /workspaces/:workspaceId/element-types/:typeId', () => {
     const type = await createOk(ana.cookies, ws.id, 'Taller');
 
     expect((await update(ana.cookies, ws.id, type.id, { labels })).statusCode).toBe(400);
+  });
+
+  it('elige qué campos oculta, en el orden de la ficha, sin repetidos (HU-12)', async () => {
+    const { ana, ws } = await setup();
+    const type = await createOk(ana.cookies, ws.id, 'Taller');
+    expect(type.hiddenFields).toEqual([]);
+
+    const response = await update(ana.cookies, ws.id, type.id, {
+      hiddenFields: ['notes', 'level', 'level'],
+    });
+    expect(elementTypeSchema.parse(response.json()).hiddenFields).toEqual(['level', 'notes']);
+
+    const shown = await update(ana.cookies, ws.id, type.id, { hiddenFields: [] });
+    expect(elementTypeSchema.parse(shown.json()).hiddenFields).toEqual([]);
+  });
+
+  it.each([
+    ['el nombre', ['name']],
+    ['el estado', ['status']],
+    ['la prioridad', ['priority']],
+    ['un campo que no existe', ['passwordHash']],
+  ])('no deja ocultar %s (400)', async (_caso, hiddenFields) => {
+    const { ana, ws } = await setup();
+    const type = await createOk(ana.cookies, ws.id, 'Taller');
+    expect((await update(ana.cookies, ws.id, type.id, { hiddenFields })).statusCode).toBe(400);
+  });
+
+  it('ocultar un campo no borra lo que ya tenían los elementos (HU-12)', async () => {
+    const { ana, ws } = await setup();
+    const curso = (await types(ana.cookies, ws.id)).find((t) => t.name === 'Curso')!;
+    const created = await app.inject({
+      method: 'POST',
+      url: `/api/v1/workspaces/${ws.id}/elements`,
+      cookies: ana.cookies,
+      payload: { typeId: curso.id, name: 'Go', notes: 'Con práctica' },
+    });
+    await update(ana.cookies, ws.id, curso.id, { hiddenFields: ['notes'] });
+
+    const element = await app.inject({
+      url: `/api/v1/workspaces/${ws.id}/elements/${created.json<{ id: string }>().id}`,
+      cookies: ana.cookies,
+    });
+    expect(element.json()).toMatchObject({ notes: 'Con práctica' });
   });
 
   it('renombrar no toca las etiquetas', async () => {

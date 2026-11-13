@@ -53,6 +53,32 @@ export const DEFAULT_FIELD_LABELS: Record<ElementField, string> = {
   notes: 'Notas',
 };
 
+/** Lo que toda ficha muestra siempre: sin nombre, estado ni prioridad no se entiende (HU-12) */
+export const ALWAYS_SHOWN_FIELDS = [
+  'name',
+  'status',
+  'priority',
+] as const satisfies readonly ElementField[];
+
+/** Los campos que un tipo puede ocultar, en el orden de la ficha */
+export const HIDEABLE_FIELDS = ELEMENT_FIELDS.filter(
+  (field) => !(ALWAYS_SHOWN_FIELDS as readonly ElementField[]).includes(field),
+);
+const hideableFieldSchema = z
+  .enum(ELEMENT_FIELDS)
+  .refine((field) => HIDEABLE_FIELDS.includes(field), 'Este campo siempre se muestra');
+
+/** Campos que la ficha de un tipo no muestra (HU-12): sin repetidos, en el orden de la ficha */
+export const hiddenFieldsSchema = z
+  .array(hideableFieldSchema)
+  .transform((fields) => HIDEABLE_FIELDS.filter((field) => fields.includes(field)));
+export type HiddenFields = z.infer<typeof hiddenFieldsSchema>;
+
+/** Si la ficha de un tipo muestra un campo */
+export function showsField(hiddenFields: readonly ElementField[], field: ElementField): boolean {
+  return !hiddenFields.includes(field);
+}
+
 const fieldLabel = z
   .string()
   .trim()
@@ -109,17 +135,34 @@ export const fieldLabelsFormSchema = z.preprocess(
   fieldLabelsInputSchema,
 );
 
-/** Tipos que se cargan al crear un espacio. "Editorial" es el ejemplo del ADR-0002 §3 */
-export const DEFAULT_ELEMENT_TYPES: readonly { name: string; labels: FieldLabels }[] = [
-  { name: 'Curso', labels: {} },
-  { name: 'Lectura', labels: { platform: 'Editorial' } },
-  { name: 'Otro', labels: {} },
+/** Lo de libros, que Curso y Otro no muestran al empezar (PO, 2026-11-12) */
+const BOOK_ONLY: ElementField[] = ['genre', 'pages'];
+
+/**
+ * Tipos que se cargan al crear un espacio. "Editorial" es el ejemplo del ADR-0002 §3; Lectura
+ * muestra lo que pidió el PO (2026-11-08): nombre del libro, autor, editorial, páginas, fechas,
+ * horas y género (y notas).
+ */
+export const DEFAULT_ELEMENT_TYPES: readonly {
+  name: string;
+  labels: FieldLabels;
+  hiddenFields: ElementField[];
+}[] = [
+  { name: 'Curso', labels: {}, hiddenFields: BOOK_ONLY },
+  {
+    name: 'Lectura',
+    labels: { name: 'Nombre del libro', platform: 'Editorial' },
+    hiddenFields: ['sponsor', 'category', 'level', 'durationWeeks', 'daysPerWeek', 'hoursPerDay'],
+  },
+  { name: 'Otro', labels: {}, hiddenFields: BOOK_ONLY },
 ];
 
 export const elementTypeSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   labels: fieldLabelsSchema,
+  /** Campos que su ficha no muestra (HU-12) */
+  hiddenFields: z.array(elementFieldSchema),
   position: z.number().int(),
   /** Archivado: ya no se ofrece para lo nuevo; lo que ya lo usa lo conserva */
   archived: z.boolean(),
@@ -139,13 +182,21 @@ const elementTypeName = z
 export const createElementTypeSchema = z.object({ name: elementTypeName });
 export type CreateElementTypeInput = z.infer<typeof createElementTypeSchema>;
 
-/** Cuerpo de PATCH .../element-types/:typeId: renombrar, cambiar etiquetas o archivar */
+/** Cuerpo de PATCH .../element-types/:typeId: renombrar, cambiar etiquetas, campos o archivar */
 export const updateElementTypeSchema = z
-  .object({ name: elementTypeName, labels: fieldLabelsInputSchema, archived: z.boolean() })
+  .object({
+    name: elementTypeName,
+    labels: fieldLabelsInputSchema,
+    hiddenFields: hiddenFieldsSchema,
+    archived: z.boolean(),
+  })
   .partial()
   .refine(
     (value) =>
-      value.name !== undefined || value.labels !== undefined || value.archived !== undefined,
-    { message: 'Indica el nombre, las etiquetas o si se archiva' },
+      value.name !== undefined ||
+      value.labels !== undefined ||
+      value.hiddenFields !== undefined ||
+      value.archived !== undefined,
+    { message: 'Indica el nombre, las etiquetas, los campos o si se archiva' },
   );
 export type UpdateElementTypeInput = z.infer<typeof updateElementTypeSchema>;

@@ -1,6 +1,7 @@
 import {
   DEFAULT_ELEMENT_TYPES,
   fieldLabelsSchema,
+  HIDEABLE_FIELDS,
   type CreateElementTypeInput,
   type ElementType,
   type UpdateElementTypeInput,
@@ -18,6 +19,7 @@ const typeSelect = {
   id: true,
   name: true,
   labels: true,
+  hiddenFields: true,
   position: true,
   archivedAt: true,
 } as const;
@@ -25,24 +27,33 @@ const typeSelect = {
 function toElementType({
   archivedAt,
   labels,
+  hiddenFields,
   ...row
 }: {
   id: string;
   name: string;
   labels: unknown;
+  hiddenFields: string[];
   position: number;
   archivedAt: Date | null;
 }): ElementType {
-  return { ...row, labels: fieldLabelsSchema.parse(labels), archived: archivedAt !== null };
+  return {
+    ...row,
+    labels: fieldLabelsSchema.parse(labels),
+    // Uno que ya no exista (si se quitara un campo) se ignora en lugar de romper la lista
+    hiddenFields: HIDEABLE_FIELDS.filter((field) => hiddenFields.includes(field)),
+    archived: archivedAt !== null,
+  };
 }
 
 /** Tipos iniciales de un espacio nuevo; va en la misma transacción que crea el espacio */
 export async function seedElementTypes(tx: Tx, workspaceId: string, actorId: string | null) {
   await tx.elementType.createMany({
-    data: DEFAULT_ELEMENT_TYPES.map(({ name, labels }, position) => ({
+    data: DEFAULT_ELEMENT_TYPES.map(({ name, labels, hiddenFields }, position) => ({
       workspaceId,
       name,
       labels,
+      hiddenFields,
       position,
       ...auditCreate(actorId),
     })),
@@ -102,13 +113,13 @@ export async function createElementType(
   }
 }
 
-/** Renombra, cambia etiquetas, archiva o reactiva. null si no es de ese espacio (→ 404) */
+/** Renombra, cambia etiquetas o campos, archiva o reactiva. null si no es de ese espacio (→ 404) */
 export async function updateElementType(
   db: Db,
   actorId: string,
   workspaceId: string,
   typeId: string,
-  { name, labels, archived }: UpdateElementTypeInput,
+  { name, labels, hiddenFields, archived }: UpdateElementTypeInput,
 ): Promise<ElementType | null> {
   try {
     return await db.$transaction(async (tx) => {
@@ -134,6 +145,7 @@ export async function updateElementType(
         data: {
           ...(name !== undefined && { name }),
           ...(labels !== undefined && { labels }),
+          ...(hiddenFields !== undefined && { hiddenFields }),
           ...(archived !== undefined && {
             // Archivar dos veces conserva la fecha original
             archivedAt: archived ? (type.archivedAt ?? new Date()) : null,

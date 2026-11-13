@@ -1,11 +1,41 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_FIELD_LABELS,
+  DEFAULT_ELEMENT_TYPES,
   fieldLabelsFormSchema,
+  fieldLabelsInputSchema as labelsInput,
+  HIDEABLE_FIELDS,
+  hiddenFieldsSchema,
+  showsField,
   fieldLabelsInputSchema,
   resolveFieldLabels,
   updateElementTypeSchema,
 } from './element-types.js';
+
+describe('campos por tipo (HU-12)', () => {
+  it('nombre, estado y prioridad siempre se muestran', () => {
+    expect(HIDEABLE_FIELDS).not.toContain('name');
+    expect(HIDEABLE_FIELDS).not.toContain('status');
+    expect(HIDEABLE_FIELDS).not.toContain('priority');
+    expect(hiddenFieldsSchema.safeParse(['status']).success).toBe(false);
+  });
+
+  it('deja los ocultos en el orden de la ficha y sin repetidos', () => {
+    expect(hiddenFieldsSchema.parse(['notes', 'pages', 'pages'])).toEqual(['pages', 'notes']);
+  });
+
+  it('showsField dice si la ficha muestra un campo', () => {
+    expect(showsField(['pages'], 'pages')).toBe(false);
+    expect(showsField(['pages'], 'author')).toBe(true);
+  });
+
+  it('los tipos iniciales son válidos: sus etiquetas y sus campos ocultos pasan la validación', () => {
+    for (const type of DEFAULT_ELEMENT_TYPES) {
+      expect(labelsInput.safeParse(type.labels).success).toBe(true);
+      expect(hiddenFieldsSchema.parse(type.hiddenFields)).toEqual(type.hiddenFields);
+    }
+  });
+});
 
 describe('resolveFieldLabels', () => {
   it('usa el nombre propio y, en lo demás, el de omisión', () => {

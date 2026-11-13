@@ -53,6 +53,8 @@ Espacio de trabajo
 ### 3. Etiquetas por tipo de elemento
 Cada tipo define cómo se llama cada campo de la ficha (por ejemplo, en Lectura "Plataforma" puede mostrarse como "Editorial"). Los campos y sus reglas no cambian, solo su nombre visible: así las reglas de cálculo y la integración siguen funcionando. Es el mismo enfoque de tipos configurables de Gestor de Proyectos (su ADR-0004).
 
+Cada tipo también elige qué campos muestra su ficha (HU-12, PO 2026-11-12). Nombre, estado y prioridad se muestran siempre. Ocultar un campo es solo de presentación: la API no rechaza su valor, la web lo conserva al guardar y lo capturado antes no se borra. Por omisión, Lectura muestra nombre del libro, autor, editorial, número de páginas, fechas, horas totales y reales, género y notas; Curso y Otro ocultan lo de libros (género y número de páginas). La migración aplica lo mismo a los espacios que ya existen.
+
 Cada tipo guarda **solo sus nombres propios** (`labels`, JSONB); un campo sin nombre propio usa el de omisión. Dos campos de un tipo no pueden llamarse igual, y debe quedar al menos un tipo activo. Los tipos se archivan, como los catálogos (HU-02).
 
 ### 4. Avance

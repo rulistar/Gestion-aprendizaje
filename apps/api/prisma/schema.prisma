@@ -301,6 +301,8 @@ model ElementType {
   name        String
   /// Solo los nombres propios del tipo; lo valida fieldLabelsSchema de packages/shared
   labels      Json      @default("{}") @db.JsonB
+  /// Campos que la ficha de este tipo no muestra (HU-12); sus valores se conservan
+  hiddenFields String[] @default([]) @map("hidden_fields")
   position    Int       @default(0)
   archivedAt  DateTime? @map("archived_at") @db.Timestamptz(3)
 
