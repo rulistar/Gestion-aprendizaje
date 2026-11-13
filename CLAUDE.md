@@ -51,7 +51,7 @@ API **3001** · web **5174** (proxy de `/api` → 3001) · PostgreSQL **5433** (
 ```
 apps/
   web/                React + Vite. Proxy de /api → http://127.0.0.1:3001 en desarrollo
-    src/router.tsx      rutas en código (TanStack Router): /login pública; la ruta "app" protege a sus hijas (/, /w/$workspaceId, /w/$workspaceId/catalogos, /w/$workspaceId/tipos, /w/$workspaceId/elementos[/nuevo|/$elementId]).
+    src/router.tsx      rutas en código (TanStack Router): /login e /invitacion públicas; la ruta "app" protege a sus hijas (/, /w/$workspaceId, /w/$workspaceId/catalogos, /w/$workspaceId/tipos, /w/$workspaceId/elementos[/nuevo|/$elementId], /w/$workspaceId/papelera, /w/$workspaceId/miembros).
                         getRouteApi usa el id: "/app/w/..."
     src/lib/api.ts      apiFetch(): llamadas a /api/v1 validadas con esquemas de shared; errores → ApiError
     src/lib/auth.ts     meQueryOptions (GET /auth/me), useCurrentUser, useLogin, useLogout
@@ -62,6 +62,8 @@ apps/
     src/components/app-sidebar.tsx  menú lateral con el combo "Espacio de trabajo"; routes/app-layout.tsx = menú + barra superior
     src/index.css       tema: las mismas variables de color de Gestor de Proyectos y Plus Jakarta Sans
     src/routes/         una página por archivo; leen la ruta con getRouteApi() para no importar router.tsx
+                        members-page.tsx: miembros e invitaciones (HU-13); el enlace se muestra una sola vez
+                        invitation-page.tsx: /invitacion#<token> (el token va tras "#": no llega al servidor)
   api/                Fastify — monolito modular
     src/app.ts          buildApp(): crea la instancia sin abrir puerto (testeable con app.inject)
     src/server.ts       arranque + cierre ordenado

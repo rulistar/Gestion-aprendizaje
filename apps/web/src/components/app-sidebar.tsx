@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { visibleTrashKinds } from '@aprendizaje/shared';
-import { BookOpen, Library, Shapes, Trash2 } from 'lucide-react';
+import { BookOpen, Library, Shapes, Trash2, Users } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import { AppLogo } from '@/components/app-logo';
 import { useCurrentUser } from '@/lib/auth';
@@ -83,6 +83,16 @@ export function AppSidebar() {
           >
             <Shapes aria-hidden />
             Tipos de elemento
+          </Link>
+          {/* Todo miembro ve quién está; solo el Admin cambia roles e invita (HU-13) */}
+          <Link
+            to="/w/$workspaceId/miembros"
+            params={{ workspaceId: current.id }}
+            className="flex min-h-8 items-center gap-2.5 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-muted [&_svg]:size-[18px] [&_svg]:shrink-0"
+            activeProps={{ className: 'bg-accent text-accent-foreground', 'aria-current': 'page' }}
+          >
+            <Users aria-hidden />
+            Miembros
           </Link>
           {/* La papelera, para quien puede quitar algo (lo verifica la API) */}
           {visibleTrashKinds(current.role).length > 0 && (
