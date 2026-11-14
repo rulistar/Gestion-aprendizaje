@@ -1,6 +1,6 @@
 # Sprint 6 — exportar, importar y ver el avance
 
-- **Fechas:** 2026-11-13 → 2026-11-26
+- **Fechas:** 2026-11-13 (cerrado el mismo día; se planeó hasta el 2026-11-26)
 - **Objetivo:** que la información entre y salga de la app (respaldos en JSON, CSV para Excel y los respaldos del prototipo "Gestor de cursos"), y que el avance se vea de un vistazo en un tablero y en gráficas.
 - **Capacidad:** 10 puntos (decisión del PO, 2026-11-12): lo que queda del backlog.
 
@@ -8,8 +8,8 @@
 
 | ID | Elemento | Puntos | Estado |
 |---|---|---|---|
-| HU-06 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | En revisión (rama `feat/hu-06-exportar-importar`) |
-| HU-08 | Tablero por estado y gráficas (elementos por mes de término) | 5 | En revisión (rama `feat/hu-08-tablero-graficas`) |
+| HU-06 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | Terminado (JSON y CSV; el formato del prototipo, pendiente) |
+| HU-08 | Tablero por estado y gráficas (elementos por mes de término) | 5 | Terminado |
 
 ## Notas
 
@@ -20,3 +20,22 @@
 - **Pendiente (HU-06):** el respaldo del prototipo "Gestor de cursos" no se tenía a mano. Falta un lector de ese formato: con un archivo real se agrega como un tercer formato de `readBackupText` (shared) sin tocar la API.
 - **Decidido (HU-08, PO 2026-11-13):** una columna por estado (los cinco del elemento); se cambia el estado arrastrando la tarjeta a otra columna (y con un selector en la tarjeta, para pantallas táctiles), solo quien puede editar. Gráficas: elementos por mes de término (fin real o, si no hay, estimado) divididos por estado, y totales por estado; se pueden ocultar. Sin librerías nuevas: SVG a mano y arrastrar nativo del navegador.
 - **Fuera de este sprint:** INT-04 sigue esperando TEC-08 y HU-18 en la v2 de Gestor de Proyectos.
+
+## Cierre (2026-11-13)
+
+- **Entregado:** 2 de 2 elementos, 10 puntos (PR 36 y 37). Objetivo cumplido en lo esencial: la información entra y sale de la app (JSON y CSV para Excel, con vista previa antes de escribir) y el avance se ve de un vistazo en un tablero por estado y en gráficas. Del objetivo queda fuera el respaldo del prototipo "Gestor de cursos", que no se tenía a mano.
+- **Pruebas:** 290 en la API, todas en verde, más las nuevas de `shared` (respaldo, CSV y tablero). Lint y tipos en verde.
+- **Sin migraciones ni dependencias nuevas:** el respaldo habla en nombres y la API crea lo que falte; las gráficas son SVG a mano.
+
+### Lo que aprendimos
+
+- **Poner la lógica en `shared` y la API delgada rindió.** Leer, validar y convertir el CSV, calcular los meses y armar la ficha para mover una tarjeta son funciones puras con pruebas; la API y la web solo las llaman.
+- **El lint encontró lo que no se ve.** Tres caracteres BOM invisibles (para Excel) estaban escritos literales en el código y `no-irregular-whitespace` los detuvo antes del PR. Los caracteres invisibles se escriben siempre con su escape (`\uFEFF`).
+- **Importar solo agregando simplifica todo.** Sin borrar ni sobrescribir no hace falta preguntar por conflictos; volver a cargar el mismo archivo no duplica nada y una importación equivocada se deshace desde la papelera.
+- **El CSV es un ejercicio de seguridad, no solo de formato.** Un texto que empieza con `=`, `+`, `-` o `@` se ejecutaría como fórmula al abrirlo en Excel; se protege al exportar y se deshace al importar.
+
+### Pendiente
+
+- **Respaldo del prototipo "Gestor de cursos":** con un archivo real se agrega como tercer formato de `readBackupText` (`shared`), sin tocar la API.
+- **INT-04:** espera TEC-08 y HU-18 en la v2 de Gestor de Proyectos.
+- **Próximo sprint:** el backlog ya no tiene historias libres. El PO decide qué entra.
