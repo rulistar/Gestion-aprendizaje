@@ -7,12 +7,14 @@ import {
   ELEMENT_STATUS_LABELS,
   ELEMENT_STATUSES,
   elementFichaFormSchema,
+  isReadingType,
   resolveFieldLabels,
   showsField,
   type CatalogItem,
   type CatalogKind,
   type Element,
   type ElementFicha,
+  type ElementStatus,
   type ElementField,
   type ElementType,
 } from '@aprendizaje/shared';
@@ -108,11 +110,18 @@ export function ElementForm({
   const [weeks, setWeeks] = useState(element?.durationWeeks?.toString() ?? '');
   const [days, setDays] = useState(String(element?.daysPerWeek ?? DEFAULT_DAYS_PER_WEEK));
   const [hours, setHours] = useState(element?.hoursPerDay?.toString() ?? '');
+  const [status, setStatus] = useState<ElementStatus>(element?.status ?? 'NOT_STARTED');
 
   const form = useSchemaForm(elementFichaFormSchema, ELEMENT_FORM_FIELDS, (data) => onSubmit(data));
   const selectedType = types.find((type) => type.id === typeId);
   const labels = resolveFieldLabels(selectedType?.labels ?? {});
   const shows = (field: ElementField) => showsField(selectedType?.hiddenFields ?? [], field);
+
+  /** La casilla "Terminada" de las lecturas (HU-17): es otra forma de poner el estado */
+  function setFinished(finished: boolean) {
+    if (finished) setStatus('DONE');
+    else setStatus(element?.actualStart ? 'IN_PROGRESS' : 'NOT_STARTED');
+  }
 
   const calculated = computeTotalHours({
     durationWeeks: toNumber(weeks),
@@ -218,7 +227,11 @@ export function ElementForm({
           )}
           <div className="grid gap-1.5">
             <Label htmlFor={form.idOf('status')}>{labels.status}</Label>
-            <Select {...form.field('status')} defaultValue={element?.status ?? 'NOT_STARTED'}>
+            <Select
+              {...form.field('status')}
+              value={status}
+              onChange={(event) => setStatus(event.target.value as ElementStatus)}
+            >
               {ELEMENT_STATUSES.map((status) => (
                 <option key={status} value={status}>
                   {ELEMENT_STATUS_LABELS[status]}
@@ -227,6 +240,17 @@ export function ElementForm({
             </Select>
             <FieldError {...form.errorProps('status')} />
           </div>
+          {isReadingType(selectedType?.name) && (
+            <label className="flex items-center gap-2 self-end pb-2 text-sm">
+              <input
+                type="checkbox"
+                className="size-4 accent-primary"
+                checked={status === 'DONE'}
+                onChange={(event) => setFinished(event.target.checked)}
+              />
+              Terminada
+            </label>
+          )}
           <div className="grid gap-1.5">
             <Label htmlFor={form.idOf('priority')}>{labels.priority}</Label>
             <Select {...form.field('priority')} defaultValue={element?.priority ?? 'MEDIUM'}>

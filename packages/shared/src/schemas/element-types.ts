@@ -157,6 +157,15 @@ export const DEFAULT_ELEMENT_TYPES: readonly {
   { name: 'Otro', labels: {}, hiddenFields: BOOK_ONLY },
 ];
 
+/**
+ * Si el tipo es el de lecturas (HU-17): su ficha ofrece la casilla "Terminada". Los tipos los
+ * nombra cada espacio, así que se reconoce por el nombre, sin importar mayúsculas ni acentos.
+ */
+export function isReadingType(name: string | undefined): boolean {
+  if (!name) return false;
+  return name.normalize('NFD').replace(/\p{M}/gu, '').trim().toLowerCase() === 'lectura';
+}
+
 export const elementTypeSchema = z.object({
   id: z.uuid(),
   name: z.string(),
