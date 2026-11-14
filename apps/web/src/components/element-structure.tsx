@@ -92,7 +92,7 @@ export function ElementStructure(shared: Shared) {
   const total = elementProgress(nodes);
 
   return (
-    <div className="grid gap-3">
+    <div className="grid max-w-4xl gap-3">
       {total.total > 0 && <ProgressBar progress={total} label="Avance del elemento" />}
       {tree.length === 0 ? (
         <p className="text-sm text-muted-foreground">
@@ -145,24 +145,27 @@ function NodeRow({
   const error = move.error ?? remove.error;
   // Una actividad ya dice su estado; lo que agrupa muestra el avance de lo que contiene
   const progress = node.kind === 'ACTIVITY' ? null : nodeProgress(node);
+  // Lo que cabe dentro de este nodo se agrega desde su propio renglón (HU-19)
+  const add = useAddNode(node, shared);
+  const canAdd = canUpdate && allowedChildKinds(node).length > 0;
 
   return (
     <li className="grid gap-1">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md border bg-card px-3 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md border bg-card px-2.5 py-1">
         <div className="flex min-w-0 items-center gap-2">
           <Icon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
           <div className="min-w-0">
-            <p className="text-sm font-medium">{node.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {label}
-              {details && ` · ${details}`}
+            <p className="text-sm font-medium">
+              {node.name} <span className="font-normal text-muted-foreground">· {label}</span>
             </p>
+            {details && <p className="text-xs text-muted-foreground">{details}</p>}
             {progress && progress.total > 0 && (
               <ProgressBar progress={progress} label={`Avance de ${node.name}`} />
             )}
           </div>
         </div>
-        <div className="flex items-center gap-0.5">
+        <div className="flex flex-wrap items-center gap-0.5">
+          {canAdd && <div className="mr-1 flex flex-wrap items-center gap-1">{add.buttons}</div>}
           {canUpdate && (
             <>
               <Button
@@ -242,20 +245,21 @@ function NodeRow({
         </div>
       )}
 
-      {(node.children.length > 0 || (canUpdate && allowedChildKinds(node).length > 0)) && (
+      {(node.children.length > 0 || (canAdd && add.form)) && (
         <div className="grid gap-2 border-l-2 pl-3 sm:ml-2 sm:pl-4">
+          {canAdd && add.form}
           {node.children.length > 0 && <NodeList nodes={node.children} shared={shared} />}
-          {canUpdate && allowedChildKinds(node).length > 0 && (
-            <AddNode parent={node} shared={shared} />
-          )}
         </div>
       )}
     </li>
   );
 }
 
-/** Los botones para agregar lo que cabe en este lugar, y el formulario de la clase elegida */
-function AddNode({ parent, shared }: { parent: NodeTreeItem | null; shared: Shared }) {
+/**
+ * Lo necesario para agregar lo que cabe en este lugar (HU-19): los botones, uno por clase, que van
+ * en el renglón del capítulo o del curso, y el formulario de la clase elegida, que va debajo.
+ */
+function useAddNode(parent: NodeTreeItem | null, shared: Shared) {
   const { workspaceId, elementId, types, catalogs } = shared;
   const create = useCreateNode(workspaceId, elementId);
   const [kind, setKind] = useState<NodeKind | null>(null);
@@ -266,71 +270,75 @@ function AddNode({ parent, shared }: { parent: NodeTreeItem | null; shared: Shar
     setKind(null);
   };
 
+  const buttons = allowedChildKinds(parent).map((option) => (
+    <Button
+      key={option}
+      size="sm"
+      variant={kind === option ? 'secondary' : 'outline'}
+      aria-expanded={kind === option}
+      onClick={() => {
+        create.reset();
+        setKind(kind === option ? null : option);
+      }}
+    >
+      <Plus aria-hidden />
+      {nodeKindLabel(option, level)}
+    </Button>
+  ));
+
+  const form = kind && (
+    <div className="rounded-md border bg-muted/30 p-3">
+      {kind === 'CHAPTER' && (
+        <ChapterForm
+          initialName=""
+          submitLabel="Agregar"
+          pending={create.isPending}
+          error={create.error?.message ?? null}
+          onEdit={() => create.reset()}
+          onCancel={close}
+          onSubmit={(content) => create.mutate({ kind, parentId, content }, { onSuccess: close })}
+        />
+      )}
+      {kind === 'COURSE' && (
+        <ElementForm
+          types={types}
+          catalogs={catalogs}
+          element={null}
+          pending={create.isPending}
+          error={create.error?.message ?? null}
+          submitLabel="Agregar curso"
+          onEdit={() => create.reset()}
+          onSubmit={(content: ElementFicha) =>
+            create.mutate({ kind, parentId, content }, { onSuccess: close })
+          }
+        />
+      )}
+      {kind === 'ACTIVITY' && (
+        <ActivityForm
+          activity={null}
+          catalogs={catalogs}
+          readOnly={false}
+          submitLabel="Agregar actividad"
+          pending={create.isPending}
+          error={create.error?.message ?? null}
+          onEdit={() => create.reset()}
+          onCancel={close}
+          onSubmit={(content) => create.mutate({ kind, parentId, content }, { onSuccess: close })}
+        />
+      )}
+    </div>
+  );
+
+  return { buttons, form };
+}
+
+/** Los botones y el formulario para agregar en la raíz del elemento, que no tiene renglón propio */
+function AddNode({ parent, shared }: { parent: NodeTreeItem | null; shared: Shared }) {
+  const { buttons, form } = useAddNode(parent, shared);
   return (
     <div className="grid gap-2">
-      <div className="flex flex-wrap items-center gap-1">
-        {allowedChildKinds(parent).map((option) => (
-          <Button
-            key={option}
-            size="sm"
-            variant={kind === option ? 'secondary' : 'outline'}
-            aria-expanded={kind === option}
-            onClick={() => {
-              create.reset();
-              setKind(kind === option ? null : option);
-            }}
-          >
-            <Plus aria-hidden />
-            {nodeKindLabel(option, level)}
-          </Button>
-        ))}
-      </div>
-      {kind && (
-        <div className="rounded-md border bg-muted/30 p-3">
-          {kind === 'CHAPTER' && (
-            <ChapterForm
-              initialName=""
-              submitLabel="Agregar"
-              pending={create.isPending}
-              error={create.error?.message ?? null}
-              onEdit={() => create.reset()}
-              onCancel={close}
-              onSubmit={(content) =>
-                create.mutate({ kind, parentId, content }, { onSuccess: close })
-              }
-            />
-          )}
-          {kind === 'COURSE' && (
-            <ElementForm
-              types={types}
-              catalogs={catalogs}
-              element={null}
-              pending={create.isPending}
-              error={create.error?.message ?? null}
-              submitLabel="Agregar curso"
-              onEdit={() => create.reset()}
-              onSubmit={(content: ElementFicha) =>
-                create.mutate({ kind, parentId, content }, { onSuccess: close })
-              }
-            />
-          )}
-          {kind === 'ACTIVITY' && (
-            <ActivityForm
-              activity={null}
-              catalogs={catalogs}
-              readOnly={false}
-              submitLabel="Agregar actividad"
-              pending={create.isPending}
-              error={create.error?.message ?? null}
-              onEdit={() => create.reset()}
-              onCancel={close}
-              onSubmit={(content) =>
-                create.mutate({ kind, parentId, content }, { onSuccess: close })
-              }
-            />
-          )}
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-1">{buttons}</div>
+      {form}
     </div>
   );
 }
