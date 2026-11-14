@@ -1,7 +1,7 @@
 5 |5 |5 |5 |5 |5 |# Product Backlog
 
 > Lista priorizada de todo lo que el producto debe hacer. La ordena el **Product Owner**. Nada entra al desarrollo sin estar aquí.
-> Última actualización: 2026-11-13 (cierre del Sprint 6: HU-06 y HU-08 terminadas).
+> Última actualización: 2026-11-13 (Sprint 7 planeado: HU-16 a HU-19).
 
 ## Cómo leer este documento
 
@@ -27,6 +27,9 @@
 | Seguridad | Prevalecen las medidas de seguridad de Gestor de Proyectos. Producción gratuita. |
 | Prioridad | Cada elemento lleva prioridad **Alta, Media o Baja**, como el prototipo, y viaja a la prioridad del proyecto en Gestor de Proyectos (PO, 2026-11-08). |
 | Ficha de Lectura | Nombre del libro, autor, editorial, número de páginas, fechas estimadas y reales, horas estimadas y reales, y género. **Autor** y **Género** son catálogos propios. **Horas reales** es para todos los tipos. **Cada tipo elige qué campos muestra** (PO, 2026-11-08). |
+| Editorial vs. plataforma | Una **marca en cada valor** del catálogo de Plataformas (Editorial o Plataforma). Una Lectura solo ofrece las editoriales; Curso y Otro, solo las plataformas (PO, 2026-11-13). |
+| Lectura terminada | Una **casilla** en la ficha de Lectura que equivale a pasar el elemento a Terminado (con su fecha real automática); desmarcarla lo reabre (PO, 2026-11-13). |
+| Minutos | **Todo pasa a minutos**: horas por día, totales y reales se capturan en minutos y lo ya guardado se convierte (×60). Los minutos de capítulos, cursos y actividades se suman hacia el elemento. Cambia lo que se envía a Gestor de Proyectos, que usa horas (PO, 2026-11-13). |
 | Usuarios en la web | Sí a las pantallas de **miembros e invitaciones**, a **mi perfil** y a **administrar usuarios** (PO, 2026-11-08). |
 
 ## Sprint 0 — cimientos (en curso)
@@ -63,6 +66,10 @@
 | HU-13 | 🟡 | Como Admin, quiero ver los miembros de un espacio, cambiar su rol o quitarlos, e invitar a alguien desde la web, para no usar la API a mano (la API ya existe: TEC-02) | 5 | 5 |
 | HU-14 | 🟡 | Como usuario, quiero cambiar mi nombre, mi correo y mi contraseña, para mantener mi cuenta al día (como HU-29 de Gestor de Proyectos) | 3 | 5 |
 | HU-15 | 🟡 | Como Admin del sistema, quiero ver las cuentas, cambiar un correo, desactivar o reactivar una cuenta y generar un enlace para restablecer una contraseña, para administrar quién entra (como HU-30 y HU-54 de Gestor de Proyectos) | 5 | 5 |
+| HU-16 | 🟡 | Como Admin, quiero marcar cada valor del catálogo de Plataformas como Editorial o Plataforma, para que una Lectura solo ofrezca editoriales y un Curso solo plataformas | 3 | 7 |
+| HU-17 | 🟡 | Como usuario, quiero una casilla "Terminada" en las lecturas, para marcar un libro como leído sin abrir el estado (equivale a pasar a Terminado, con su fecha real automática) | 2 | 7 |
+| HU-18 | 🟡 | Como usuario, quiero capturar y ver la duración en minutos en lugar de horas, y que los minutos de capítulos, cursos y actividades se sumen hacia el elemento, para saber cuánto lleva en total | 8 | 7 |
+| HU-19 | 🟢 | Como usuario, quiero que las opciones para agregar en la estructura (subcapítulo, curso y actividad) salgan en el mismo renglón del capítulo o curso al que se agregan, para armarla con menos clics (PO, 2026-11-14) | 1 | 7 |
 | INT-03 | 🟢 | Integración con Lexika (cuando exista) | — | — |
 
 ## Pendientes de definir (al escribir las historias)
