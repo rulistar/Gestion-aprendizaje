@@ -4,6 +4,7 @@ import type { Db } from './db/client.js';
 import type { WorkspaceAccess } from './modules/workspaces/access.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { profileRoutes } from './modules/auth/profile.routes.js';
+import { backupRoutes } from './modules/backup/backup.routes.js';
 import { catalogsRoutes } from './modules/catalogs/catalogs.routes.js';
 import { elementTypesRoutes } from './modules/element-types/element-types.routes.js';
 import { elementsRoutes } from './modules/elements/elements.routes.js';
@@ -88,6 +89,7 @@ export function buildApp({
   void app.register(nodesRoutes, { prefix: '/api/v1' });
   void app.register(trashRoutes, { prefix: '/api/v1' });
   void app.register(syncRoutes, { prefix: '/api/v1' });
+  void app.register(backupRoutes, { prefix: '/api/v1' });
 
   if (webDist) registerWebApp(app, webDist);
 

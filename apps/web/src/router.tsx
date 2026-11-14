@@ -17,6 +17,7 @@ import { membersQueryOptions } from '@/lib/members';
 import { trashQueryOptions } from '@/lib/trash';
 import { workspaceQueryOptions } from '@/lib/workspaces';
 import { AppLayout } from '@/routes/app-layout';
+import { BackupPage } from '@/routes/backup-page';
 import { CatalogsPage } from '@/routes/catalogs-page';
 import { ElementDetailPage } from '@/routes/element-detail-page';
 import { ElementNewPage } from '@/routes/element-new-page';
@@ -257,6 +258,15 @@ const membersRoute = createRoute({
   errorComponent: ErrorPage,
 });
 
+const backupRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/w/$workspaceId/respaldo',
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),
+  component: BackupPage,
+  errorComponent: ErrorPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   invitationRoute,
@@ -273,6 +283,7 @@ const routeTree = rootRoute.addChildren([
     elementDetailRoute,
     trashRoute,
     membersRoute,
+    backupRoute,
   ]),
 ]);
 

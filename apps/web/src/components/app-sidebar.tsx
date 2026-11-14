@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { visibleTrashKinds } from '@aprendizaje/shared';
-import { BookOpen, Library, Shapes, Trash2, Users } from 'lucide-react';
+import { roleHasPermission, visibleTrashKinds } from '@aprendizaje/shared';
+import { BookOpen, DatabaseBackup, Library, Shapes, Trash2, Users } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import { AppLogo } from '@/components/app-logo';
 import { useCurrentUser } from '@/lib/auth';
@@ -94,6 +94,21 @@ export function AppSidebar() {
             <Users aria-hidden />
             Miembros
           </Link>
+          {/* Exportar e importar (HU-06): exporta todo miembro con ese permiso; importa solo el Admin */}
+          {roleHasPermission(current.role, 'data.export') && (
+            <Link
+              to="/w/$workspaceId/respaldo"
+              params={{ workspaceId: current.id }}
+              className="flex min-h-8 items-center gap-2.5 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-muted [&_svg]:size-[18px] [&_svg]:shrink-0"
+              activeProps={{
+                className: 'bg-accent text-accent-foreground',
+                'aria-current': 'page',
+              }}
+            >
+              <DatabaseBackup aria-hidden />
+              Exportar e importar
+            </Link>
+          )}
           {/* La papelera, para quien puede quitar algo (lo verifica la API) */}
           {visibleTrashKinds(current.role).length > 0 && (
             <Link
