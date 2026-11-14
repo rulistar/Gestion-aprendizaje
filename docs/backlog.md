@@ -1,7 +1,7 @@
 5 |5 |5 |5 |5 |5 |# Product Backlog
 
 > Lista priorizada de todo lo que el producto debe hacer. La ordena el **Product Owner**. Nada entra al desarrollo sin estar aquí.
-> Última actualización: 2026-11-12 (Sprint 6 planeado: HU-06 y HU-08).
+> Última actualización: 2026-11-13 (cierre del Sprint 6: HU-06 y HU-08 terminadas).
 
 ## Cómo leer este documento
 
@@ -67,4 +67,4 @@
 
 ## Pendientes de definir (al escribir las historias)
 
-- Ninguno por ahora. Las decisiones de HU-06 y HU-08 se toman al empezar cada una (ver el Sprint 6).
+- **Respaldo del prototipo "Gestor de cursos"** (parte de HU-06): falta un archivo real para definir cómo se acomoda en elementos, estructura y actividades.
