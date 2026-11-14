@@ -65,6 +65,7 @@ apps/
                         members-page.tsx: miembros e invitaciones (HU-13); el enlace se muestra una sola vez
                         invitation-page.tsx: /invitacion#<token> (el token va tras "#": no llega al servidor)
                         users-page.tsx: usuarios del sistema (HU-15); password-reset-page.tsx: /restablecer#<token>
+                        board-page.tsx: tablero por estado y gráficas (HU-08) en /w/$workspaceId/tablero; arrastrar cambia el estado con PUT (useMoveElement, optimista)
                         backup-page.tsx: exportar e importar (HU-06) en /w/$workspaceId/respaldo; lee y valida el archivo aquí (readBackupText), pide la vista previa y solo escribe al confirmar
     src/components/copy-link-box.tsx  enlace de un solo uso para copiar (invitaciones y restablecer contraseña)
   api/                Fastify — monolito modular
@@ -133,6 +134,7 @@ packages/
     src/schemas/progress.ts     avance (ADR-0002 §4): summarizeActivities, elementProgress, nodeProgress, con pruebas
     src/schemas/element-filters.ts  filtros de la lista de elementos (HU-05), en la URL, con pruebas
     src/schemas/trash.ts        papelera (HU-07): trashItemSchema, trashPermission, visibleTrashKinds, con pruebas
+    src/schemas/element-board.ts  tablero y gráficas (HU-08): groupByStatus, statusTotals, elementsByEndMonth, elementToFicha, con pruebas
     src/schemas/backup.ts       respaldo (HU-06): esquema por nombres, estructura plana con profundidad, CSV para Excel (backupToCsv, csvToBackup,
                                 parseCsv) y readBackupText; las reglas del árbol se reutilizan con structureIssues; con pruebas
     src/schemas/sync.ts         integración con Proyectos (INT-02): copia de lo que se usa de su contrato, projectBody/taskBody

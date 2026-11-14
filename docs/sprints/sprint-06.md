@@ -9,7 +9,7 @@
 | ID | Elemento | Puntos | Estado |
 |---|---|---|---|
 | HU-06 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | En revisión (rama `feat/hu-06-exportar-importar`) |
-| HU-08 | Tablero por estado y gráficas (elementos por mes de término) | 5 | Pendiente |
+| HU-08 | Tablero por estado y gráficas (elementos por mes de término) | 5 | En revisión (rama `feat/hu-08-tablero-graficas`) |
 
 ## Notas
 
@@ -18,5 +18,5 @@
 - **Decidido (HU-06, PO 2026-11-12):** exporta cualquier miembro (todo lo que ve en el espacio) e importa solo el Admin, como en Proyectos. Importar **solo agrega**: nunca borra ni sobrescribe; un elemento con el mismo tipo y nombre se omite (volver a cargar el mismo archivo no duplica), y los tipos y valores de catálogo que falten se crean. Siempre hay vista previa antes de escribir.
 - **Formato (HU-06):** el respaldo habla en nombres (tipo, plataforma, autor...), no en IDs, y la estructura va como lista plana en orden de lectura con su profundidad. El CSV (con BOM, para Excel) tiene una fila por elemento (profundidad 0) y por nodo (1 a 3), se puede volver a importar y acepta `;`, coma decimal, fechas día/mes/año y estados en español. Las celdas que empiezan con `= + - @` se protegen con un apóstrofo al exportar (inyección de fórmulas).
 - **Pendiente (HU-06):** el respaldo del prototipo "Gestor de cursos" no se tenía a mano. Falta un lector de ese formato: con un archivo real se agrega como un tercer formato de `readBackupText` (shared) sin tocar la API.
-- **Por decidir al llegar (HU-08):** qué columnas tiene el tablero (los estados del elemento) y si se puede cambiar el estado arrastrando, como en Proyectos.
+- **Decidido (HU-08, PO 2026-11-13):** una columna por estado (los cinco del elemento); se cambia el estado arrastrando la tarjeta a otra columna (y con un selector en la tarjeta, para pantallas táctiles), solo quien puede editar. Gráficas: elementos por mes de término (fin real o, si no hay, estimado) divididos por estado, y totales por estado; se pueden ocultar. Sin librerías nuevas: SVG a mano y arrastrar nativo del navegador.
 - **Fuera de este sprint:** INT-04 sigue esperando TEC-08 y HU-18 en la v2 de Gestor de Proyectos.

@@ -1,4 +1,11 @@
-import { elementListSchema, elementSchema, type ElementFicha } from '@aprendizaje/shared';
+import {
+  elementListSchema,
+  elementSchema,
+  elementToFicha,
+  type ElementFicha,
+  type ElementListItem,
+  type ElementStatus,
+} from '@aprendizaje/shared';
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from './api';
 
@@ -61,5 +68,35 @@ export function useUpdateElement(workspaceId: string, elementId: string) {
         schema: elementSchema,
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: elementsKey(workspaceId) }),
+  });
+}
+
+/**
+ * Cambiar el estado desde el tablero (HU-08). La tarjeta se mueve al instante y vuelve a su lugar
+ * si la API lo rechaza; las fechas reales automáticas las pone la API al ver el cambio de estado.
+ */
+export function useMoveElement(workspaceId: string) {
+  const queryClient = useQueryClient();
+  const key = elementsKey(workspaceId);
+  return useMutation({
+    mutationFn: ({ element, status }: { element: ElementListItem; status: ElementStatus }) =>
+      apiFetch(`${elementsPath(workspaceId)}/${element.id}?today=${localToday()}`, {
+        method: 'PUT',
+        body: elementToFicha(element, status),
+        schema: elementSchema,
+      }),
+    onMutate: async ({ element, status }) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<ElementListItem[]>(key);
+      queryClient.setQueryData<ElementListItem[]>(key, (list) =>
+        list?.map((item) => (item.id === element.id ? { ...item, status } : item)),
+      );
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) queryClient.setQueryData(key, context.previous);
+    },
+    // Con la respuesta de la API: fechas reales y avance al día
+    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 }

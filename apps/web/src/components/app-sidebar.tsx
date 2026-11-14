@@ -1,6 +1,14 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { roleHasPermission, visibleTrashKinds } from '@aprendizaje/shared';
-import { BookOpen, DatabaseBackup, Library, Shapes, Trash2, Users } from 'lucide-react';
+import {
+  BookOpen,
+  DatabaseBackup,
+  LayoutDashboard,
+  Library,
+  Shapes,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import { AppLogo } from '@/components/app-logo';
 import { useCurrentUser } from '@/lib/auth';
@@ -64,6 +72,15 @@ export function AppSidebar() {
           >
             <BookOpen aria-hidden />
             Elementos
+          </Link>
+          <Link
+            to="/w/$workspaceId/tablero"
+            params={{ workspaceId: current.id }}
+            className="flex min-h-8 items-center gap-2.5 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-muted [&_svg]:size-[18px] [&_svg]:shrink-0"
+            activeProps={{ className: 'bg-accent text-accent-foreground', 'aria-current': 'page' }}
+          >
+            <LayoutDashboard aria-hidden />
+            Tablero
           </Link>
           {/* Catálogos y tipos: los ve todo miembro; solo el Admin los cambia (lo verifica la API) */}
           <Link

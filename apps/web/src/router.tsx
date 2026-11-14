@@ -18,6 +18,7 @@ import { trashQueryOptions } from '@/lib/trash';
 import { workspaceQueryOptions } from '@/lib/workspaces';
 import { AppLayout } from '@/routes/app-layout';
 import { BackupPage } from '@/routes/backup-page';
+import { BoardPage } from '@/routes/board-page';
 import { CatalogsPage } from '@/routes/catalogs-page';
 import { ElementDetailPage } from '@/routes/element-detail-page';
 import { ElementNewPage } from '@/routes/element-new-page';
@@ -204,6 +205,19 @@ const elementsRoute = createRoute({
   errorComponent: ErrorPage,
 });
 
+const boardRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/w/$workspaceId/tablero',
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(workspaceQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(elementsQueryOptions(params.workspaceId)),
+      context.queryClient.ensureQueryData(elementTypesQueryOptions(params.workspaceId)),
+    ]),
+  component: BoardPage,
+  errorComponent: ErrorPage,
+});
+
 const elementNewRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/w/$workspaceId/elementos/nuevo',
@@ -279,6 +293,7 @@ const routeTree = rootRoute.addChildren([
     catalogsRoute,
     elementTypesRoute,
     elementsRoute,
+    boardRoute,
     elementNewRoute,
     elementDetailRoute,
     trashRoute,

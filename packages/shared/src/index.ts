@@ -1,6 +1,7 @@
 export * from './schemas/auth.js';
 export * from './schemas/backup.js';
 export * from './schemas/catalogs.js';
+export * from './schemas/element-board.js';
 export * from './schemas/element-filters.js';
 export * from './schemas/element-nodes.js';
 export * from './schemas/element-types.js';
