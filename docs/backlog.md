@@ -54,7 +54,7 @@
 | INT-01 | 🔴 | ADR de integración con Gestor de Proyectos: qué se sincroniza, en qué dirección, tokens de API y webhooks ([ADR-0004](adr/ADR-0004-integracion-gestor-proyectos.md)) | 3 | 3 |
 | INT-02 | 🔴 | Como usuario, quiero enviar un elemento a Gestor de Proyectos y que sus cambios lleguen solos, para no capturar dos veces (lado de Aprendizaje: bandeja de salida, vínculos y envío, probado contra un receptor de prueba) | 8 | 4 |
 | INT-04 | 🔴 | Conectar la sincronización con Gestor de Proyectos real y activarla en producción (requiere TEC-08 y HU-18 de Proyectos, en su v2) | 3 | — |
-| HU-06 | 🟡 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" | 5 | 6 |
+| HU-06 | 🟡 | Exportar e importar (JSON y CSV), incluidos los respaldos del prototipo "Gestor de cursos" (JSON y CSV hechos; el formato del prototipo, pendiente de un archivo real) | 5 | 6 |
 | HU-07 | 🟡 | Papelera: borrado lógico restaurable; físico solo desde la papelera (Admin) | 3 | 4 |
 | HU-08 | 🟢 | Tablero por estado y gráficas (elementos por mes de término) | 5 | 6 |
 | HU-10 | 🟡 | Como usuario, quiero darle prioridad (Alta, Media, Baja) a cada elemento y filtrar por ella, para saber qué estudiar primero (también llega a la prioridad del proyecto en Gestor de Proyectos) | 2 | 5 |
