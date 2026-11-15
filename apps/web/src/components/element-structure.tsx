@@ -92,7 +92,7 @@ export function ElementStructure(shared: Shared) {
   const total = elementProgress(nodes);
 
   return (
-    <div className="grid max-w-4xl gap-3">
+    <div className="grid max-w-[78rem] gap-3">
       {total.total > 0 && <ProgressBar progress={total} label="Avance del elemento" />}
       {tree.length === 0 ? (
         <p className="text-sm text-muted-foreground">

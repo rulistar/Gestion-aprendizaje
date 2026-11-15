@@ -5,6 +5,7 @@ import {
   fieldLabelsFormSchema,
   fieldLabelsInputSchema as labelsInput,
   HIDEABLE_FIELDS,
+  isReadingType,
   hiddenFieldsSchema,
   showsField,
   fieldLabelsInputSchema,
@@ -100,5 +101,19 @@ describe('updateElementTypeSchema', () => {
 
   it('acepta dejar las etiquetas vacías', () => {
     expect(updateElementTypeSchema.parse({ labels: {} })).toEqual({ labels: {} });
+  });
+});
+
+describe('isReadingType (HU-17)', () => {
+  it('reconoce Lectura sin importar mayúsculas, acentos ni espacios', () => {
+    expect(isReadingType('Lectura')).toBe(true);
+    expect(isReadingType('  lectura ')).toBe(true);
+    expect(isReadingType('LECTURA')).toBe(true);
+  });
+
+  it('los demás tipos no la tienen', () => {
+    expect(isReadingType('Curso')).toBe(false);
+    expect(isReadingType('Lecturas')).toBe(false);
+    expect(isReadingType(undefined)).toBe(false);
   });
 });

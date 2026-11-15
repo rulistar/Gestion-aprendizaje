@@ -9,7 +9,7 @@
 | ID | Elemento | Puntos | Estado |
 |---|---|---|---|
 | HU-19 | Opciones de la estructura (subcapítulo, curso, actividad) en el renglón del capítulo | 1 | En revisión (rama `feat/hu-19-estructura-renglon`) |
-| HU-17 | Casilla "Terminada" en las lecturas | 2 | Pendiente |
+| HU-17 | Casilla "Terminada" en las lecturas | 2 | En revisión (rama feat/hu-17-lectura-terminada) |
 | HU-16 | Marca Editorial / Plataforma en cada valor del catálogo | 3 | Pendiente |
 | HU-18 | Duración en minutos y suma hacia el elemento | 8 | Pendiente |
 
@@ -17,7 +17,7 @@
 
 - **Orden:** de lo más chico a lo más grande, un PR por elemento: HU-19, HU-17, HU-16 y al final HU-18, que toca la base de datos, la integración con Gestor de Proyectos y el respaldo.
 - **HU-16:** nueva columna en `catalog_items` (la marca) para el catálogo de Plataformas. Los valores que ya existen quedan como Plataforma; en un espacio con lecturas ya capturadas, el Admin marca cuáles son editoriales. Lectura muestra solo editoriales; Curso y Otro, solo plataformas (un valor ya usado se conserva aunque no se ofrezca, como con los archivados). El respaldo (HU-06) debe llevar la marca.
-- **HU-17:** sin migración. La casilla marca Terminado (con la fecha real automática de HU-03) y desmarcarla reabre el elemento, igual que cambiar el estado a mano.
+- **HU-17:** sin migración. La casilla marca Terminado (con la fecha real automática de HU-03) y desmarcarla reabre el elemento, igual que cambiar el estado a mano. La casilla aparece en los tipos llamados "Lectura" (se reconoce por el nombre, sin importar mayúsculas ni acentos) y queda ligada al campo Estado.
 - **HU-18, a decidir al llegar:**
   - Cómo se suma: si el elemento tiene minutos capturados, mandan; si no, la suma de las actividades (y los cursos que contiene). Qué pasa con las actividades canceladas.
   - Qué se envía a Gestor de Proyectos: hoy va en horas ([ADR-0004](../adr/ADR-0004-integracion-gestor-proyectos.md)); habrá que convertir (÷ 60) y decidir si el ADR se actualiza.
