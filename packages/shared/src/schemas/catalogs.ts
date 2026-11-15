@@ -36,6 +36,8 @@ export const catalogItemSchema = z.object({
   position: z.number().int(),
   /** Archivado: ya no se ofrece para lo nuevo; lo que ya lo usa lo conserva */
   archived: z.boolean(),
+  /** Solo en Plataformas (HU-16): true si es una editorial; false si es una plataforma */
+  publisher: z.boolean(),
 });
 export type CatalogItem = z.infer<typeof catalogItemSchema>;
 
@@ -52,14 +54,28 @@ const catalogItemName = z
 export const catalogItemNameSchema = z.object({ name: catalogItemName });
 
 /** Cuerpo de POST /workspaces/:workspaceId/catalogs */
-export const createCatalogItemSchema = catalogItemNameSchema.extend({ kind: catalogKindSchema });
+export const createCatalogItemSchema = catalogItemNameSchema.extend({
+  kind: catalogKindSchema,
+  /** Solo cuenta en Plataformas; si no se indica, es una plataforma */
+  publisher: z.boolean().optional(),
+});
 export type CreateCatalogItemInput = z.infer<typeof createCatalogItemSchema>;
 
-/** Cuerpo de PATCH .../catalogs/:itemId: renombrar o archivar */
+/** Cuerpo de PATCH .../catalogs/:itemId: renombrar, archivar o cambiar si es editorial */
 export const updateCatalogItemSchema = z
-  .object({ name: catalogItemName, archived: z.boolean() })
+  .object({ name: catalogItemName, archived: z.boolean(), publisher: z.boolean() })
   .partial()
-  .refine((value) => value.name !== undefined || value.archived !== undefined, {
-    message: 'Indica el nombre o si se archiva',
-  });
+  .refine(
+    (value) =>
+      value.name !== undefined || value.archived !== undefined || value.publisher !== undefined,
+    { message: 'Indica el nombre, si se archiva o si es editorial' },
+  );
 export type UpdateCatalogItemInput = z.infer<typeof updateCatalogItemSchema>;
+
+/**
+ * Si un valor de Plataformas se ofrece en la ficha de un tipo (HU-16): las lecturas usan solo
+ * editoriales; los demás tipos, solo plataformas.
+ */
+export function platformFitsType(item: { publisher: boolean }, reading: boolean): boolean {
+  return item.publisher === reading;
+}

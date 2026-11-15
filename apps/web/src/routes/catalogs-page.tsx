@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { catalogsQueryOptions, useCreateCatalogItem, useUpdateCatalogItem } from '@/lib/catalogs';
 import { useSchemaForm } from '@/lib/use-schema-form';
 import { workspaceQueryOptions } from '@/lib/workspaces';
@@ -103,8 +104,12 @@ function CatalogCard({
 
 function AddItemForm({ workspaceId, kind }: { workspaceId: string; kind: CatalogKind }) {
   const create = useCreateCatalogItem(workspaceId);
+  // Solo Plataformas distingue editoriales de plataformas (HU-16)
+  const [publisher, setPublisher] = useState(false);
   const form = useSchemaForm(catalogItemNameSchema, ['name'], ({ name }, formEl) =>
-    create.mutate({ kind, name }, { onSuccess: () => formEl.reset() }),
+    create.mutate(kind === 'PLATFORM' ? { kind, name, publisher } : { kind, name }, {
+      onSuccess: () => formEl.reset(),
+    }),
   );
 
   return (
@@ -118,6 +123,17 @@ function AddItemForm({ workspaceId, kind }: { workspaceId: string; kind: Catalog
           // El aviso de "ya existe" era del texto anterior
           onChange={() => create.reset()}
         />
+        {kind === 'PLATFORM' && (
+          <Select
+            aria-label="Es una"
+            className="w-auto"
+            value={publisher ? 'publisher' : 'platform'}
+            onChange={(event) => setPublisher(event.target.value === 'publisher')}
+          >
+            <option value="platform">Plataforma</option>
+            <option value="publisher">Editorial</option>
+          </Select>
+        )}
         <Button type="submit" variant="outline" disabled={create.isPending}>
           <Plus aria-hidden />
           Agregar
@@ -165,6 +181,11 @@ function CatalogRow({
             <span className={item.archived ? 'text-sm text-muted-foreground' : 'text-sm'}>
               {item.name}
             </span>
+            {item.kind === 'PLATFORM' && (
+              <span className="rounded border px-1.5 py-0.5 text-xs text-muted-foreground">
+                {item.publisher ? 'Editorial' : 'Plataforma'}
+              </span>
+            )}
             {item.archived && (
               <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-semibold">
                 Archivado
@@ -174,6 +195,16 @@ function CatalogRow({
         )}
         {canManage && !editing && (
           <div className="flex items-center gap-1">
+            {item.kind === 'PLATFORM' && (
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={update.isPending}
+                onClick={() => update.mutate({ itemId: item.id, publisher: !item.publisher })}
+              >
+                {item.publisher ? 'Pasar a plataforma' : 'Pasar a editorial'}
+              </Button>
+            )}
             <Button
               size="sm"
               variant="ghost"

@@ -3,6 +3,7 @@ import {
   BACKUP_FORMAT,
   BACKUP_VERSION,
   DEFAULT_DAYS_PER_WEEK,
+  isReadingType,
   type Backup,
   type BackupElement,
   type BackupFicha,
@@ -205,7 +206,7 @@ export async function importBackup(
         items.map((item) => [key(item.kind, item.name), item.id]),
       );
       const newTypes: { id: string; name: string }[] = [];
-      const newItems: { id: string; kind: CatalogKind; name: string }[] = [];
+      const newItems: { id: string; kind: CatalogKind; name: string; publisher: boolean }[] = [];
 
       const typeId = (name: string) => {
         let id = typeIds.get(key(name));
@@ -216,13 +217,14 @@ export async function importBackup(
         }
         return id;
       };
-      const catalogId = (kind: CatalogKind, name: string | null) => {
+      // `publisher`: el valor nuevo de Plataformas es una editorial (lo pide una lectura, HU-16)
+      const catalogId = (kind: CatalogKind, name: string | null, publisher = false) => {
         if (name === null) return null;
         let id = catalogIds.get(key(kind, name));
         if (!id) {
           id = uuidV7();
           catalogIds.set(key(kind, name), id);
-          newItems.push({ id, kind, name });
+          newItems.push({ id, kind, name, publisher });
         }
         return id;
       };
@@ -231,7 +233,7 @@ export async function importBackup(
       const fichaColumns = (ficha: BackupFicha) => ({
         name: ficha.name,
         typeId: typeId(ficha.type),
-        platformId: catalogId(CATALOG_FIELDS.platform, ficha.platform),
+        platformId: catalogId(CATALOG_FIELDS.platform, ficha.platform, isReadingType(ficha.type)),
         sponsorId: catalogId(CATALOG_FIELDS.sponsor, ficha.sponsor),
         categoryId: catalogId(CATALOG_FIELDS.category, ficha.category),
         levelId: catalogId(CATALOG_FIELDS.level, ficha.level),
@@ -353,11 +355,12 @@ export async function importBackup(
           await tx.catalogItem.createMany({
             data: newItems
               .filter((item) => item.kind === kind)
-              .map(({ id, name }, index) => ({
+              .map(({ id, name, publisher }, index) => ({
                 id,
                 workspaceId,
                 kind,
                 name,
+                isPublisher: publisher,
                 position: (last._max.position ?? -1) + 1 + index,
                 ...auditCreate(actorId),
               })),
