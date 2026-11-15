@@ -149,7 +149,7 @@ export function ElementsPage() {
                       <span className="text-sm text-muted-foreground">
                         {typeName(element.typeId)} · {ELEMENT_STATUS_LABELS[element.status]} ·
                         Prioridad {ELEMENT_PRIORITY_LABELS[element.priority].toLowerCase()}
-                        {element.totalHours !== null && ` · ${element.totalHours} h`}
+                        {element.totalHours !== null && ` · ${element.totalHours} min`}
                       </span>
                     </span>
                     <ProgressBar progress={element.progress} label={`Avance de ${element.name}`} />

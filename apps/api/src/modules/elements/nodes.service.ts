@@ -1,6 +1,7 @@
 import {
   allowedChildKinds,
   applyStatusDates,
+  rollupMinutes,
   type ActivityContent,
   type ActivityStatus,
   type CreateNodeInput,
@@ -19,6 +20,7 @@ import {
   fichaData,
   InvalidActualDatesError,
   InvalidReferenceError,
+  minutesNodeOf,
   toElement,
 } from './elements.service.js';
 import { markChanged } from '../sync/outbox.js';
@@ -96,7 +98,8 @@ interface NodeRow {
   updatedAt: Date;
 }
 
-function toNode(row: NodeRow): ElementNode {
+/** `minutes`: lo que suma ese nodo con lo que contiene (HU-18); solo se muestra en un Curso */
+function toNode(row: NodeRow, minutes: number | null = null): ElementNode {
   const base = {
     id: row.id,
     elementId: row.elementId,
@@ -112,13 +115,16 @@ function toNode(row: NodeRow): ElementNode {
       ...base,
       kind: 'COURSE',
       // Las columnas de la ficha siempre están llenas en un Curso: solo se escriben con su esquema
-      ficha: toElement({
-        ...row,
-        typeId: row.typeId!,
-        daysPerWeek: row.daysPerWeek!,
-        status: row.status!,
-        priority: row.priority!,
-      }),
+      ficha: toElement(
+        {
+          ...row,
+          typeId: row.typeId!,
+          daysPerWeek: row.daysPerWeek!,
+          status: row.status!,
+          priority: row.priority!,
+        },
+        minutes,
+      ),
     };
   }
   return {
@@ -191,7 +197,9 @@ export async function listNodes(
     select: nodeSelect,
     orderBy: [{ level: 'asc' }, { position: 'asc' }],
   });
-  return rows.map(toNode);
+  // Cada curso muestra lo que suman sus actividades si no tiene minutos capturados (HU-18)
+  const { byNode } = rollupMinutes(rows.map(minutesNodeOf));
+  return rows.map((row) => toNode(row, byNode.get(row.id) ?? null));
 }
 
 /** Crea el nodo al final de sus hermanos. null si el elemento no está (→ 404) */

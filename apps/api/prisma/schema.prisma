@@ -355,11 +355,12 @@ model Element {
 
   durationWeeks    Decimal? @map("duration_weeks") @db.Decimal(6, 2)
   daysPerWeek      Int      @default(5) @map("days_per_week")
-  hoursPerDay      Decimal? @map("hours_per_day") @db.Decimal(4, 2)
-  /// Horas capturadas a mano: si hay, mandan sobre las calculadas
-  manualTotalHours Decimal? @map("manual_total_hours") @db.Decimal(8, 2)
-  /// Horas que de verdad llevó, capturadas a mano (HU-11)
-  actualHours      Decimal? @map("actual_hours") @db.Decimal(8, 2)
+  /// HU-18: desde aquí las tres columnas están en MINUTOS (los nombres conservan "hours")
+  hoursPerDay      Decimal? @map("hours_per_day") @db.Decimal(6, 2)
+  /// Minutos capturados a mano: si hay, mandan sobre los calculados
+  manualTotalHours Decimal? @map("manual_total_hours") @db.Decimal(10, 2)
+  /// Minutos que de verdad llevó, capturados a mano (HU-11)
+  actualHours      Decimal? @map("actual_hours") @db.Decimal(10, 2)
 
   estimatedStart DateTime? @map("estimated_start") @db.Date
   estimatedEnd   DateTime? @map("estimated_end") @db.Date
@@ -425,9 +426,9 @@ model ElementNode {
   pages            Int?
   durationWeeks    Decimal?         @map("duration_weeks") @db.Decimal(6, 2)
   daysPerWeek      Int?             @map("days_per_week")
-  hoursPerDay      Decimal?         @map("hours_per_day") @db.Decimal(4, 2)
-  manualTotalHours Decimal?         @map("manual_total_hours") @db.Decimal(8, 2)
-  actualHours      Decimal?         @map("actual_hours") @db.Decimal(8, 2)
+  hoursPerDay      Decimal?         @map("hours_per_day") @db.Decimal(6, 2)
+  manualTotalHours Decimal?         @map("manual_total_hours") @db.Decimal(10, 2)
+  actualHours      Decimal?         @map("actual_hours") @db.Decimal(10, 2)
   status           ElementStatus?
   /// Solo en un Curso; las demás clases la dejan vacía (HU-10)
   priority         ElementPriority?

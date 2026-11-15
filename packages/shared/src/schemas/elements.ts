@@ -100,19 +100,21 @@ export const elementFichaSchema = z
       .min(1, 'Mínimo 1')
       .max(7, 'Máximo 7')
       .default(DEFAULT_DAYS_PER_WEEK),
-    hoursPerDay: positiveNumber(24),
-    /** Horas capturadas a mano: si hay, mandan sobre las calculadas */
+    // Desde HU-18 todo se mide en minutos; los nombres de los campos se conservan
+    /** Minutos por día (un día tiene 1440) */
+    hoursPerDay: positiveNumber(1440),
+    /** Minutos capturados a mano: si hay, mandan sobre los calculados */
     manualTotalHours: z
       .number({ error: 'Escribe un número' })
       .min(0, 'No puede ser negativo')
-      .max(100000, 'Máximo 100000')
+      .max(6000000, 'Máximo 6000000')
       .nullable()
       .default(null),
-    /** Horas que de verdad llevó (HU-11), para compararlas con las estimadas */
+    /** Minutos que de verdad llevó (HU-11), para compararlos con los estimados */
     actualHours: z
       .number({ error: 'Escribe un número' })
       .min(0, 'No puede ser negativo')
-      .max(100000, 'Máximo 100000')
+      .max(6000000, 'Máximo 6000000')
       .nullable()
       .default(null),
     estimatedStart: optionalDate,
@@ -194,7 +196,7 @@ export const elementSchema = z.object({
   daysPerWeek: z.number().int(),
   hoursPerDay: z.number().nullable(),
   manualTotalHours: z.number().nullable(),
-  /** Las capturadas o, si no hay, las calculadas; null si faltan datos para calcular */
+  /** Minutos: los capturados; si no hay, los de la estructura; si no, los calculados (HU-18) */
   totalHours: z.number().nullable(),
   actualHours: z.number().nullable(),
   estimatedStart: isoDate.nullable(),
@@ -218,15 +220,22 @@ export const elementListSchema = z.array(elementListItemSchema);
 /** ?today= de POST y PUT: el día en la zona del usuario, que no siempre es el del servidor */
 export const elementTodayQuerySchema = z.object({ today: isoDate.optional() });
 
-/** Horas totales: manda lo capturado; si no, semanas × días por semana × horas por día */
+/**
+ * Minutos totales (HU-18): manda lo capturado; si no, la suma de la estructura (capítulos, cursos y
+ * actividades, ver element-minutes); si tampoco hay, semanas × días por semana × minutos por día.
+ */
 export function computeTotalHours({
   durationWeeks,
   daysPerWeek,
   hoursPerDay,
   manualTotalHours,
-}: Pick<ElementFicha, 'durationWeeks' | 'daysPerWeek' | 'hoursPerDay' | 'manualTotalHours'>):
-  number | null {
+  structureMinutes = null,
+}: Pick<ElementFicha, 'durationWeeks' | 'daysPerWeek' | 'hoursPerDay' | 'manualTotalHours'> & {
+  /** Lo que suma la estructura del elemento o curso; null si no tiene minutos */
+  structureMinutes?: number | null;
+}): number | null {
   if (manualTotalHours !== null) return manualTotalHours;
+  if (structureMinutes !== null) return structureMinutes;
   if (durationWeeks === null || hoursPerDay === null) return null;
   return Math.round(durationWeeks * daysPerWeek * hoursPerDay * 100) / 100;
 }

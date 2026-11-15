@@ -334,8 +334,8 @@ export function ElementForm({
               />
               <p className="text-xs text-muted-foreground">
                 {calculated === null
-                  ? 'Se calculan al llenar la duración, o captúralas aquí.'
-                  : `Calculadas: ${calculated} h. Si capturas otro valor, manda el tuyo.`}
+                  ? 'Se calculan con la duración o con la estructura, o captúralos aquí.'
+                  : `Calculados: ${calculated} min. Si capturas otro valor, manda el tuyo.`}
               </p>
               <FieldError {...form.errorProps('manualTotalHours')} />
             </div>
@@ -352,7 +352,7 @@ export function ElementForm({
                 step="any"
                 defaultValue={element?.actualHours ?? ''}
               />
-              <p className="text-xs text-muted-foreground">Las que de verdad te llevó.</p>
+              <p className="text-xs text-muted-foreground">Los que de verdad te llevó.</p>
               <FieldError {...form.errorProps('actualHours')} />
             </div>
           ) : (

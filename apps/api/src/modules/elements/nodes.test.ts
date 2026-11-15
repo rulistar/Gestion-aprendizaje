@@ -344,6 +344,38 @@ describe('contenido', () => {
     });
   });
 
+  it('los minutos se suman hacia arriba y una actividad cancelada no cuenta (HU-18)', async () => {
+    const { ws, elementId, ana, chapter, course, post, list } = await setup();
+    const intro = await chapter('Intro');
+    const sql = await course('SQL');
+    const minutes = (parentId: string, name: string, durationMinutes: number, status?: string) =>
+      post({
+        kind: 'ACTIVITY',
+        parentId,
+        content: { name, durationMinutes, ...(status && { status }) },
+      });
+    await minutes(intro.id, 'Leer', 40);
+    await minutes(intro.id, 'Quiz', 25);
+    await minutes(intro.id, 'Descartada', 90, 'CANCELLED');
+    await minutes(sql.id, 'Video', 30);
+
+    const element = elementSchema.parse(
+      (
+        await app.inject({
+          url: `/api/v1/workspaces/${ws.id}/elements/${elementId}`,
+          cookies: ana.cookies,
+        })
+      ).json(),
+    );
+    // Capítulo: 40 + 25 (la cancelada no cuenta); curso: 30
+    expect(element.totalHours).toBe(95);
+
+    const nodes = await list();
+    const found = nodes.find((node) => node.id === sql.id);
+    if (found?.kind !== 'COURSE') throw new Error('Debe ser un Curso');
+    expect(found.ficha.totalHours).toBe(30);
+  });
+
   it('un Curso rechaza un tipo de otro espacio y conserva uno archivado', async () => {
     const { ana, ws, typeId, post, put, course } = await setup();
     const other = await createWorkspace(db, ana.user.id, { name: 'Otro' });

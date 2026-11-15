@@ -107,6 +107,31 @@ describe('el respaldo en JSON', () => {
     if (!result.ok) expect(result.errors.join('\n')).toContain('No es un respaldo');
   });
 
+  it('un respaldo de la versión 1 (en horas) se convierte a minutos al leerlo', () => {
+    const old = {
+      format: BACKUP_FORMAT,
+      version: 1,
+      elements: [
+        {
+          ...ficha(),
+          hoursPerDay: 1.5,
+          manualTotalHours: 20,
+          actualHours: 18.5,
+          nodes: [{ kind: 'COURSE', depth: 1, ...ficha({ name: 'Curso', manualTotalHours: 2 }) }],
+        },
+      ],
+    };
+
+    const result = readBackupText(JSON.stringify(old));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const [element] = result.backup.elements;
+    expect(result.backup.version).toBe(BACKUP_VERSION);
+    expect(element).toMatchObject({ hoursPerDay: 90, manualTotalHours: 1200, actualHours: 1110 });
+    expect(element!.nodes[0]).toMatchObject({ manualTotalHours: 120 });
+  });
+
   it('un JSON roto da un mensaje claro', () => {
     expect(readBackupText('{ "format": ')).toEqual({
       ok: false,
@@ -197,11 +222,72 @@ describe('el CSV para Excel', () => {
     expect(csvToBackup(backupToCsv(backup))).toEqual({ ok: true, backup });
   });
 
-  it('Horas totales es informativa: lo calculado no se vuelve horas capturadas', () => {
+  it('Minutos totales es informativa: lo calculado no se vuelve minutos capturados', () => {
     const result = csvToBackup(backupToCsv(backup));
     expect(result.ok && result.backup.elements[0]!.manualTotalHours).toBe(null);
-    // 4 semanas × 5 días × 1.5 horas
+    // 4 semanas × 5 días × 1.5 minutos
     expect(backupToCsv(backup)).toContain(',30,');
+  });
+
+  it('un CSV de la versión 1 (columnas en horas) se convierte a minutos', () => {
+    const csv = [
+      'Profundidad,Clase,Nombre,Tipo,Horas por día,Horas capturadas,Horas reales',
+      '0,Elemento,Go,Curso,1.5,20,18.5',
+    ].join('\n');
+
+    const result = csvToBackup(csv);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.elements[0]).toMatchObject({
+      hoursPerDay: 90,
+      manualTotalHours: 1200,
+      actualHours: 1110,
+    });
+  });
+
+  it('Minutos totales suma la estructura: capítulo y elemento', () => {
+    const withStructure: Backup = {
+      ...backup,
+      elements: [
+        {
+          ...ficha({ name: 'Libro', durationWeeks: null, hoursPerDay: null }),
+          nodes: [
+            { kind: 'CHAPTER', depth: 1, name: 'Intro' },
+            {
+              kind: 'ACTIVITY',
+              depth: 2,
+              name: 'Leer',
+              activityType: null,
+              durationMinutes: 40,
+              status: 'PENDING',
+              estimatedStart: null,
+              estimatedEnd: null,
+              actualStart: null,
+              actualEnd: null,
+            },
+            {
+              kind: 'ACTIVITY',
+              depth: 2,
+              name: 'Quiz cancelado',
+              activityType: null,
+              durationMinutes: 99,
+              status: 'CANCELLED',
+              estimatedStart: null,
+              estimatedEnd: null,
+              actualStart: null,
+              actualEnd: null,
+            },
+          ],
+        },
+      ],
+    };
+
+    const lines = backupToCsv(withStructure).split('\r\n');
+    const column = lines[0]!.split(',').indexOf('Minutos totales');
+
+    expect(lines[1]!.split(',')[column]).toBe('40');
+    expect(lines[2]!.split(',')[column]).toBe('40');
   });
 
   it('protege contra fórmulas de Excel y lo deshace al leerlo', () => {
@@ -217,7 +303,7 @@ describe('el CSV para Excel', () => {
 
   it('acepta punto y coma, coma decimal, fechas día/mes/año y estados en español', () => {
     const csv = [
-      'Profundidad;Clase;Nombre;Tipo;Estado;Prioridad;Inicio estimado;Horas por día',
+      'Profundidad;Clase;Nombre;Tipo;Estado;Prioridad;Inicio estimado;Minutos por día',
       '0;Elemento;Go;Curso;En curso;alta;05/01/2026;1,5',
       '1;Capítulo;Intro;;;;;',
       '2;Actividad;Hola;;Hecha;;;',

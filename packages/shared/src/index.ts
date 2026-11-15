@@ -4,6 +4,7 @@ export * from './schemas/catalogs.js';
 export * from './schemas/element-board.js';
 export * from './schemas/element-filters.js';
 export * from './schemas/element-nodes.js';
+export * from './schemas/element-minutes.js';
 export * from './schemas/element-types.js';
 export * from './schemas/elements.js';
 export * from './schemas/health.js';

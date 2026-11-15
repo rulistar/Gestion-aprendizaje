@@ -25,7 +25,7 @@ Detalle en [docs/backlog.md](docs/backlog.md) y [ADR-0002](docs/adr/ADR-0002-ele
 - Acceso como en Gestor de Proyectos: **registro solo por invitación**, espacios y **roles** (Admin, Miembro, Lector), sin la matriz por persona.
 - **Tipos de elemento** (Curso, Lectura, Otro…) con **etiquetas propias** por campo.
 - Plataforma, patrocinador, categoría, nivel y tipo de actividad: **catálogos editables**.
-- Horas totales = semanas × días por semana × horas por día, o capturadas a mano (manda lo capturado).
+- Todo se mide en minutos (HU-18). Minutos totales: lo capturado a mano; si no hay, la suma de la estructura (sin actividades canceladas); si no, semanas × días por semana × minutos por día. Los campos conservan sus nombres `hoursPerDay`, `manualTotalHours`, `actualHours` y `totalHours`.
 - Fechas reales automáticas al cambiar el estado, y editables.
 - Árbol de hasta 3 niveles: Capítulo, Curso (misma ficha Zod que el elemento) o Actividad; en el nivel 3, solo actividades.
 
@@ -130,7 +130,8 @@ packages/
   shared/             esquemas Zod + tipos (z.infer) usados por web y api
     src/schemas/permissions.ts  catálogo de permisos por rol (roleHasPermission)
     src/schemas/catalogs.ts     los cinco catálogos: tipos, etiquetas y valores iniciales
-    src/schemas/elements.ts     la ficha (una sola, también para los nodos Curso de HU-04), horas totales y fechas reales automáticas, con pruebas
+    src/schemas/elements.ts     la ficha (una sola, también para los nodos Curso de HU-04), minutos totales y fechas reales automáticas, con pruebas
+    src/schemas/element-minutes.ts  suma de minutos hacia el elemento (HU-18), con pruebas
     src/schemas/progress.ts     avance (ADR-0002 §4): summarizeActivities, elementProgress, nodeProgress, con pruebas
     src/schemas/element-filters.ts  filtros de la lista de elementos (HU-05), en la URL, con pruebas
     src/schemas/trash.ts        papelera (HU-07): trashItemSchema, trashPermission, visibleTrashKinds, con pruebas
