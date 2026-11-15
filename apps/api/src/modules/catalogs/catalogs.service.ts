@@ -19,10 +19,12 @@ const itemSelect = {
   name: true,
   position: true,
   archivedAt: true,
+  isPublisher: true,
 } as const;
 
 function toCatalogItem({
   archivedAt,
+  isPublisher,
   ...row
 }: {
   id: string;
@@ -30,8 +32,9 @@ function toCatalogItem({
   name: string;
   position: number;
   archivedAt: Date | null;
+  isPublisher: boolean;
 }): CatalogItem {
-  return { ...row, archived: archivedAt !== null };
+  return { ...row, archived: archivedAt !== null, publisher: isPublisher };
 }
 
 /** Valores iniciales de un espacio nuevo; va en la misma transacción que crea el espacio */
@@ -84,7 +87,7 @@ export async function createCatalogItem(
   db: Db,
   actorId: string,
   workspaceId: string,
-  { kind, name }: CreateCatalogItemInput,
+  { kind, name, publisher }: CreateCatalogItemInput,
 ): Promise<CatalogItem> {
   if (await nameTaken(db, workspaceId, kind, name)) throw new DuplicateCatalogItemError();
   const last = await db.catalogItem.aggregate({
@@ -98,6 +101,8 @@ export async function createCatalogItem(
         kind,
         name,
         position: (last._max.position ?? -1) + 1,
+        // Editorial o plataforma solo distingue valores de Plataformas
+        isPublisher: kind === 'PLATFORM' && publisher === true,
         ...auditCreate(actorId),
       },
       select: itemSelect,
@@ -109,13 +114,13 @@ export async function createCatalogItem(
   }
 }
 
-/** Renombra, archiva o reactiva. null si el valor no es de ese espacio (→ 404) */
+/** Renombra, archiva, reactiva o cambia si es editorial. null si el valor no es de ese espacio (→ 404) */
 export async function updateCatalogItem(
   db: Db,
   actorId: string,
   workspaceId: string,
   itemId: string,
-  { name, archived }: UpdateCatalogItemInput,
+  { name, archived, publisher }: UpdateCatalogItemInput,
 ): Promise<CatalogItem | null> {
   try {
     return await db.$transaction(async (tx) => {
@@ -137,6 +142,7 @@ export async function updateCatalogItem(
         where: { id: itemId },
         data: {
           ...(name !== undefined && { name }),
+          ...(publisher !== undefined && item.kind === 'PLATFORM' && { isPublisher: publisher }),
           ...(archived !== undefined && {
             // Archivar dos veces conserva la fecha original
             archivedAt: archived ? (item.archivedAt ?? new Date()) : null,

@@ -8,6 +8,7 @@ import {
   ELEMENT_STATUSES,
   elementFichaFormSchema,
   isReadingType,
+  platformFitsType,
   resolveFieldLabels,
   showsField,
   type CatalogItem,
@@ -138,8 +139,14 @@ export function ElementForm({
     if (!shows(field.replace(/Id$/, '') as ElementField)) {
       return <Kept name={field} value={element?.[field]} />;
     }
+    // Las lecturas ofrecen solo editoriales; los demás tipos, solo plataformas (HU-16)
+    const reading = isReadingType(selectedType?.name);
     const options = selectable(
-      catalogs.filter((item) => item.kind === kind),
+      catalogs.filter(
+        (item) =>
+          item.kind === kind &&
+          (kind !== 'PLATFORM' || platformFitsType(item, reading) || item.id === element?.[field]),
+      ),
       element?.[field],
     );
     return (

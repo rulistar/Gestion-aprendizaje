@@ -233,3 +233,44 @@ describe('PATCH /workspaces/:workspaceId/catalogs/:itemId', () => {
     expect((await update(ana.cookies, ws.id, 'no-es-un-id', { name: 'X' })).statusCode).toBe(404);
   });
 });
+
+describe('editorial o plataforma (HU-16)', () => {
+  it('los valores de Plataformas son plataforma salvo que se marquen como editorial', async () => {
+    const { ana, ws } = await setup();
+
+    const platform = await createOk(ana.cookies, ws.id, 'PLATFORM', 'Coursera');
+    const created = await create(ana.cookies, ws.id, {
+      kind: 'PLATFORM',
+      name: 'Alfaomega',
+      publisher: true,
+    });
+
+    expect(platform.publisher).toBe(false);
+    expect(catalogItemSchema.parse(created.json()).publisher).toBe(true);
+  });
+
+  it('en otros catálogos la marca no cuenta', async () => {
+    const { ana, ws } = await setup();
+
+    const response = await create(ana.cookies, ws.id, {
+      kind: 'LEVEL',
+      name: 'Experto',
+      publisher: true,
+    });
+
+    expect(catalogItemSchema.parse(response.json()).publisher).toBe(false);
+  });
+
+  it('se cambia después, y los demás datos del valor no se tocan', async () => {
+    const { ana, ws } = await setup();
+    const item = await createOk(ana.cookies, ws.id, 'PLATFORM', 'Alfaomega');
+
+    const response = await update(ana.cookies, ws.id, item.id, { publisher: true });
+
+    expect(catalogItemSchema.parse(response.json())).toMatchObject({
+      name: 'Alfaomega',
+      archived: false,
+      publisher: true,
+    });
+  });
+});
