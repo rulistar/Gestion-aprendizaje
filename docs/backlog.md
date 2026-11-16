@@ -1,7 +1,7 @@
 5 |5 |5 |5 |5 |5 |# Product Backlog
 
 > Lista priorizada de todo lo que el producto debe hacer. La ordena el **Product Owner**. Nada entra al desarrollo sin estar aquí.
-> Última actualización: 2026-11-13 (Sprint 7 planeado: HU-16 a HU-19).
+> Última actualización: 2026-11-15 (Sprint 7 cerrado; Sprint 8 propuesto: HU-20 a HU-22).
 
 ## Cómo leer este documento
 
@@ -30,6 +30,8 @@
 | Editorial vs. plataforma | Una **marca en cada valor** del catálogo de Plataformas (Editorial o Plataforma). Una Lectura solo ofrece las editoriales; Curso y Otro, solo las plataformas (PO, 2026-11-13). |
 | Lectura terminada | Una **casilla** en la ficha de Lectura que equivale a pasar el elemento a Terminado (con su fecha real automática); desmarcarla lo reabre (PO, 2026-11-13). |
 | Minutos | **Todo pasa a minutos**: horas por día, totales y reales se capturan en minutos y lo ya guardado se convierte (×60). Los minutos de capítulos, cursos y actividades se suman hacia el elemento. Cambia lo que se envía a Gestor de Proyectos, que usa horas (PO, 2026-11-13). |
+| Estado de libros y capítulos | Libro y capítulo tienen un **estado a mano** opcional (Pausado, Cancelado, Terminado); sin él, el estado es **automático** según el avance del detalle. Terminado a mano muestra 100% sin tocar las actividades. Gestor de Proyectos sigue recibiendo la estructura completa (PO, 2026-11-15). |
+| Leer de nuevo | Crea una **copia** del libro como nuevo (sin fechas ni minutos reales, actividades pendientes); el original no se toca (PO, 2026-11-15). |
 | Usuarios en la web | Sí a las pantallas de **miembros e invitaciones**, a **mi perfil** y a **administrar usuarios** (PO, 2026-11-08). |
 
 ## Sprint 0 — cimientos (en curso)
@@ -70,6 +72,9 @@
 | HU-17 | 🟡 | Como usuario, quiero una casilla "Terminada" en las lecturas, para marcar un libro como leído sin abrir el estado (equivale a pasar a Terminado, con su fecha real automática) | 2 | 7 |
 | HU-18 | 🟡 | Como usuario, quiero capturar y ver la duración en minutos en lugar de horas, y que los minutos de capítulos, cursos y actividades se sumen hacia el elemento, para saber cuánto lleva en total | 8 | 7 |
 | HU-19 | 🟢 | Como usuario, quiero que las opciones para agregar en la estructura (subcapítulo, curso y actividad) salgan en el mismo renglón del capítulo o curso al que se agregan, para armarla con menos clics (PO, 2026-11-14) | 1 | 7 |
+| HU-20 | 🟡 | Como usuario, quiero marcar un capítulo o subcapítulo como Pausado, Cancelado o Terminado a mano, para cerrar una parte sin ir actividad por actividad (PO, 2026-11-15) | 5 | 8 |
+| HU-21 | 🟡 | Como usuario, quiero que el estado de un libro siga solo al avance de su detalle (y solo cambie a mano cuando yo lo decida), para no actualizarlo manualmente (PO, 2026-11-15) | 8 | 8 |
+| HU-22 | 🟢 | Como usuario, quiero "Leer de nuevo": crear una copia del libro como nuevo, para volver a leerlo sin perder la lectura anterior (PO, 2026-11-15) | 3 | 8 |
 | INT-03 | 🟢 | Integración con Lexika (cuando exista) | — | — |
 
 ## Pendientes de definir (al escribir las historias)
