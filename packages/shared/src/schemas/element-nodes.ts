@@ -47,9 +47,33 @@ const nodeName = z
 const isoDate = z.iso.date('Fecha no válida');
 const optionalDate = isoDate.nullable().default(null);
 
-/** Un capítulo solo agrupa */
-export const chapterContentSchema = z.object({ name: nodeName });
+/**
+ * Estado a mano de un capítulo o subcapítulo (HU-20): Pausado, Cancelado o Terminado. Sin estado
+ * (null) el capítulo no tiene ninguno a mano y solo muestra el avance de lo que contiene. Terminado
+ * cuenta sus actividades como hechas y Cancelado las deja fuera del avance y de los minutos, sin
+ * cambiar las actividades; Pausado no cambia el avance.
+ */
+export const CHAPTER_STATUSES = ['PAUSED', 'CANCELLED', 'DONE'] as const;
+export const chapterStatusSchema = z.enum(CHAPTER_STATUSES);
+export type ChapterStatus = z.infer<typeof chapterStatusSchema>;
+
+/**
+ * Un capítulo agrupa; su estado a mano es opcional (HU-20). Los minutos son opcionales: si los
+ * captura, valen en lugar de la suma de lo que contiene (HU-18).
+ */
+export const chapterContentSchema = z.object({
+  name: nodeName,
+  durationMinutes: z
+    .number({ error: 'Escribe un número' })
+    .int('Debe ser un número entero')
+    .positive('Debe ser mayor que 0')
+    .max(6000000, 'Máximo 6000000')
+    .nullable()
+    .default(null),
+  status: chapterStatusSchema.nullable().default(null),
+});
 export type ChapterContent = z.infer<typeof chapterContentSchema>;
+export const chapterContentFormSchema = z.preprocess(fromFormValues, chapterContentSchema);
 
 /** Una actividad es la hoja: lo que se hace */
 export const activityContentSchema = z
@@ -130,7 +154,15 @@ export const activitySchema = z.object({
 export type Activity = z.infer<typeof activitySchema>;
 
 export const elementNodeSchema = z.discriminatedUnion('kind', [
-  z.object({ ...nodeBase, kind: z.literal('CHAPTER') }),
+  z.object({
+    ...nodeBase,
+    kind: z.literal('CHAPTER'),
+    status: chapterStatusSchema.nullable(),
+    /** Los minutos que capturó, si los capturó */
+    durationMinutes: z.number().int().nullable().optional(),
+    /** Lo que suman sus actividades (HU-18); lo calcula el servidor, no se captura */
+    totalMinutes: z.number().nullable().optional(),
+  }),
   z.object({ ...nodeBase, kind: z.literal('COURSE'), ficha: elementSchema }),
   z.object({ ...nodeBase, kind: z.literal('ACTIVITY'), activity: activitySchema }),
 ]);

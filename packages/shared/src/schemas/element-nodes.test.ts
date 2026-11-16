@@ -50,6 +50,7 @@ describe('buildNodeTree', () => {
   function chapter(id: string, parentId: string | null, position: number): ElementNode {
     return {
       kind: 'CHAPTER',
+      status: null,
       id,
       elementId: ID,
       parentId,

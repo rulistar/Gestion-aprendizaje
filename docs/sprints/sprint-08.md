@@ -8,7 +8,7 @@
 
 | ID | Elemento | Puntos | Estado |
 |---|---|---|---|
-| HU-20 | Estado a mano en los capítulos y subcapítulos (Pausado, Cancelado, Terminado) | 5 | Pendiente |
+| HU-20 | Estado a mano en los capítulos y subcapítulos (Pausado, Cancelado, Terminado) | 5 | En revisión |
 | HU-21 | El estado del libro sigue solo al avance del detalle | 8 | Pendiente |
 | HU-22 | "Leer de nuevo": crea una copia del libro como nuevo | 3 | Pendiente |
 
@@ -25,4 +25,6 @@
   - La casilla **"Terminada"** de las lecturas (HU-17) pasa a ser Terminado a mano.
   - Las **fechas reales** automáticas (HU-03) cuando el estado cambia solo.
   - Cómo se guarda el estado a mano (columna nueva o un valor "automático") y qué se envía a Proyectos.
+- **HU-20 — cómo quedó:** sin migración: el estado del capítulo usa la columna `status` que ya existe en `element_nodes` (Curso la usa para su ficha; en un capítulo solo valen Pausado, Cancelado, Terminado o vacío = automático). El avance cuenta por actividad: un capítulo Terminado a mano cuenta todo lo que contiene como hecho y uno Cancelado lo deja fuera (el Cancelado manda si hay varios anidados); lo mismo aplica a los minutos. A Proyectos se envía cada tarea con ese estado efectivo, sin cambiar las actividades. El respaldo (JSON y CSV, columna Estado) lo incluye. El capítulo también acepta minutos a mano (si los captura, valen en lugar de la suma de lo que contiene). **Minutos totales del libro (PO, 2026-11-15):** si la estructura suma más de 0, esa suma es el total; si no suma nada, manda el total capturado.
+- **Minutos reales (PO, 2026-11-15):** se quedan como están: solo se capturan en el libro y en los cursos, sin suma desde la estructura. Reales por actividad (con suma a capítulo y libro) se decide al llegar a HU-21, porque el estado automático y las fechas reales dependen de eso.
 - **Fuera de este sprint:** el respaldo del prototipo "Gestor de cursos" (falta un archivo real) e INT-04.

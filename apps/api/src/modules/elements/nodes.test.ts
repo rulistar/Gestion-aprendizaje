@@ -376,6 +376,84 @@ describe('contenido', () => {
     expect(found.ficha.totalHours).toBe(30);
   });
 
+  it('un capítulo guarda su estado a mano y se puede quitar (HU-20)', async () => {
+    const { put, chapter, list } = await setup();
+    const node = await chapter('Uno');
+    expect(node).toMatchObject({ kind: 'CHAPTER', status: null });
+
+    const paused = await put(node.id, {
+      kind: 'CHAPTER',
+      content: { name: 'Uno', status: 'PAUSED' },
+    });
+    expect(elementNodeSchema.parse(paused.json())).toMatchObject({ status: 'PAUSED' });
+    expect((await list())[0]).toMatchObject({ status: 'PAUSED' });
+
+    const cleared = await put(node.id, { kind: 'CHAPTER', content: { name: 'Uno', status: null } });
+    expect(elementNodeSchema.parse(cleared.json())).toMatchObject({ status: null });
+  });
+
+  it('los minutos capturados en un capítulo valen en lugar de la suma (HU-20)', async () => {
+    const { ws, elementId, ana, chapter, post, put, list } = await setup();
+    const node = await chapter('Uno');
+    await post({
+      kind: 'ACTIVITY',
+      parentId: node.id,
+      content: { name: 'Leer', durationMinutes: 30 },
+    });
+
+    const captured = await put(node.id, {
+      kind: 'CHAPTER',
+      content: { name: 'Uno', durationMinutes: 120 },
+    });
+    expect(elementNodeSchema.parse(captured.json())).toMatchObject({ durationMinutes: 120 });
+    expect((await list())[0]).toMatchObject({ durationMinutes: 120, totalMinutes: 120 });
+
+    const element = elementSchema.parse(
+      (
+        await app.inject({
+          url: `/api/v1/workspaces/${ws.id}/elements/${elementId}`,
+          cookies: ana.cookies,
+        })
+      ).json(),
+    );
+    expect(element.totalHours).toBe(120);
+  });
+
+  it('un capítulo rechaza un estado que no es Pausado, Cancelado o Terminado (HU-20)', async () => {
+    const { post } = await setup();
+
+    const response = await post({ kind: 'CHAPTER', content: { name: 'X', status: 'IN_PROGRESS' } });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('un capítulo Cancelado no suma minutos al elemento (HU-20)', async () => {
+    const { ws, elementId, ana, chapter, post, put } = await setup();
+    const kept = await chapter('Queda');
+    const dropped = await chapter('Se cancela');
+    for (const parent of [kept, dropped]) {
+      await post({
+        kind: 'ACTIVITY',
+        parentId: parent.id,
+        content: { name: 'Leer', durationMinutes: 30 },
+      });
+    }
+    await put(dropped.id, {
+      kind: 'CHAPTER',
+      content: { name: 'Se cancela', status: 'CANCELLED' },
+    });
+
+    const element = elementSchema.parse(
+      (
+        await app.inject({
+          url: `/api/v1/workspaces/${ws.id}/elements/${elementId}`,
+          cookies: ana.cookies,
+        })
+      ).json(),
+    );
+    expect(element.totalHours).toBe(30);
+  });
+
   it('un Curso rechaza un tipo de otro espacio y conserva uno archivado', async () => {
     const { ana, ws, typeId, post, put, course } = await setup();
     const other = await createWorkspace(db, ana.user.id, { name: 'Otro' });
@@ -583,6 +661,27 @@ describe('avance en la lista de elementos (HU-05)', () => {
     expect((await context.remove(first.id)).statusCode).toBe(204);
 
     expect(await progressOf(context, context.elementId)).toEqual({ total: 1, done: 0, percent: 0 });
+  });
+
+  it('un capítulo Terminado cuenta todo hecho y uno Cancelado queda fuera (HU-20)', async () => {
+    const context = await setup();
+    const finished = await context.chapter('Terminado');
+    const dropped = await context.chapter('Cancelado');
+    await context.activity('Pendiente A', finished.id);
+    await context.activity('Pendiente B', dropped.id);
+    await context.activity('Suelta');
+    const mark = (node: { id: string }, name: string, status: string) =>
+      context.put(node.id, { kind: 'CHAPTER', content: { name, status } });
+
+    await mark(finished, 'Terminado', 'DONE');
+    await mark(dropped, 'Cancelado', 'CANCELLED');
+
+    // Terminado: 1 de 1; Cancelado: fuera; la suelta sigue pendiente → 1 de 2
+    expect(await progressOf(context, context.elementId)).toEqual({
+      total: 2,
+      done: 1,
+      percent: 50,
+    });
   });
 
   it('cada elemento cuenta solo sus actividades, y un Lector también ve el avance', async () => {

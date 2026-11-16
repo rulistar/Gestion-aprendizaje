@@ -5,6 +5,8 @@ import {
   ACTIVITY_STATUS_LABELS,
   activityContentSchema,
   allowedChildKinds,
+  chapterContentSchema,
+  chapterStatusSchema,
   MAX_NODE_LEVEL,
   nodeKindLabel,
   type NodeKind,
@@ -71,7 +73,14 @@ const fichaShape = {
 const depth = z.number().int().min(1).max(MAX_NODE_LEVEL);
 
 export const backupNodeSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('CHAPTER'), depth, name: f.name }),
+  z.object({
+    kind: z.literal('CHAPTER'),
+    depth,
+    name: f.name,
+    // Estado a mano (HU-20); un respaldo anterior no lo trae y queda sin estado
+    status: chapterStatusSchema.nullable().default(null),
+    durationMinutes: chapterContentSchema.shape.durationMinutes,
+  }),
   z.object({ kind: z.literal('COURSE'), depth, ...fichaShape }).superRefine(checkDateOrder),
   z
     .object({
@@ -304,7 +313,12 @@ function minutesOf(node: BackupNode) {
       cancelled: false,
     };
   }
-  return { depth: node.depth, captured: null, calculated: null, cancelled: false };
+  return {
+    depth: node.depth,
+    captured: node.durationMinutes,
+    calculated: null,
+    cancelled: node.status === 'CANCELLED',
+  };
 }
 
 /** El respaldo como CSV con BOM (para que Excel lea bien los acentos): una fila por elemento y nodo */
@@ -352,6 +366,8 @@ export function backupToCsv(backup: Backup): string {
         row({
           ...base,
           Nombre: cellText(node.name),
+          Minutos: cellNumber(node.durationMinutes),
+          Estado: node.status ? ELEMENT_STATUS_LABELS[node.status] : '',
           'Minutos totales': cellNumber(byIndex[at] ?? null),
         });
       } else if (node.kind === 'COURSE') row({ ...base, ...fichaCells(node, byIndex[at] ?? null) });
@@ -535,6 +551,9 @@ export function csvToBackup(text: string): CsvReadResult {
           ? lookup(status, ACTIVITY_STATUS_LABELS)
           : lookup(status, ELEMENT_STATUS_LABELS);
     if (status !== '' && statusCode === null) fail(`Estado no válido ("${status}")`);
+    if (kind === 'CHAPTER' && statusCode && !chapterStatusSchema.safeParse(statusCode).success) {
+      fail(`Un capítulo solo puede estar Pausado, Cancelado o Terminado ("${status}")`);
+    }
     const priority = read('Prioridad');
     const priorityCode = priority === '' ? undefined : lookup(priority, ELEMENT_PRIORITY_LABELS);
     if (priority !== '' && priorityCode === null) fail(`Prioridad no válida ("${priority}")`);
@@ -595,7 +614,13 @@ export function csvToBackup(text: string): CsvReadResult {
     }
     const raw =
       kind === 'CHAPTER'
-        ? { kind, depth: rowDepth, name: ficha.name }
+        ? {
+            kind,
+            depth: rowDepth,
+            name: ficha.name,
+            durationMinutes: number(read('Minutos')),
+            ...(statusCode && { status: statusCode }),
+          }
         : kind === 'COURSE'
           ? { kind, depth: rowDepth, ...ficha }
           : {

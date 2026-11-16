@@ -21,7 +21,7 @@ describe('computeTotalHours', () => {
     ).toBe(5.63);
   });
 
-  it('manda lo capturado, aunque sea 0', () => {
+  it('sin estructura que sume, manda lo capturado, aunque sea 0', () => {
     expect(computeTotalHours({ ...base, manualTotalHours: 12 })).toBe(12);
     expect(computeTotalHours({ ...base, manualTotalHours: 0 })).toBe(0);
   });
@@ -29,7 +29,10 @@ describe('computeTotalHours', () => {
   it('sin captura, la suma de la estructura pesa más que el cálculo (HU-18)', () => {
     expect(computeTotalHours({ ...base, structureMinutes: 75 })).toBe(75);
     expect(computeTotalHours({ ...base, structureMinutes: null })).toBe(40);
-    expect(computeTotalHours({ ...base, manualTotalHours: 12, structureMinutes: 75 })).toBe(12);
+    // Con minutos en la estructura, su suma es el total; en cero, vuelve a mandar lo capturado
+    expect(computeTotalHours({ ...base, manualTotalHours: 12, structureMinutes: 75 })).toBe(75);
+    expect(computeTotalHours({ ...base, manualTotalHours: 12, structureMinutes: 0 })).toBe(12);
+    expect(computeTotalHours({ ...base, manualTotalHours: 12, structureMinutes: null })).toBe(12);
   });
 
   it.each([

@@ -5,7 +5,9 @@ import {
   activityContentFormSchema,
   allowedChildKinds,
   buildNodeTree,
-  chapterContentSchema,
+  CHAPTER_STATUSES,
+  chapterContentFormSchema,
+  type ChapterStatus,
   ELEMENT_PRIORITY_LABELS,
   ELEMENT_STATUS_LABELS,
   elementProgress,
@@ -82,7 +84,11 @@ function summary(node: NodeTreeItem, catalogs: CatalogItem[]) {
       ACTIVITY_STATUS_LABELS[status],
     ];
   }
-  return [];
+  // Un capítulo muestra el estado a mano que tenga; sin él, solo su avance
+  return [
+    node.status && ELEMENT_STATUS_LABELS[node.status],
+    node.totalMinutes != null && node.totalMinutes > 0 && `${node.totalMinutes} min`,
+  ];
 }
 
 /** La estructura de un elemento en hasta 3 niveles (HU-04; reglas en ADR-0002 §2) */
@@ -159,7 +165,7 @@ function NodeRow({
               {node.name} <span className="font-normal text-muted-foreground">· {label}</span>
             </p>
             {details && <p className="text-xs text-muted-foreground">{details}</p>}
-            {progress && progress.total > 0 && (
+            {progress && (progress.total > 0 || progress.percent > 0) && (
               <ProgressBar progress={progress} label={`Avance de ${node.name}`} />
             )}
           </div>
@@ -291,6 +297,8 @@ function useAddNode(parent: NodeTreeItem | null, shared: Shared) {
       {kind === 'CHAPTER' && (
         <ChapterForm
           initialName=""
+          initialMinutes={null}
+          initialStatus={null}
           submitLabel="Agregar"
           pending={create.isPending}
           error={create.error?.message ?? null}
@@ -365,6 +373,8 @@ function EditNode({
       <ChapterForm
         {...common}
         initialName={node.name}
+        initialMinutes={node.durationMinutes ?? null}
+        initialStatus={node.status}
         submitLabel="Guardar"
         onCancel={onClose}
         onSubmit={(content) => update.mutate({ kind: 'CHAPTER', content }, { onSuccess: onClose })}
@@ -423,6 +433,8 @@ function FormActions({
 
 function ChapterForm({
   initialName,
+  initialMinutes,
+  initialStatus,
   submitLabel,
   pending,
   error,
@@ -431,28 +443,68 @@ function ChapterForm({
   onSubmit,
 }: {
   initialName: string;
+  initialMinutes: number | null;
+  initialStatus: ChapterStatus | null;
   submitLabel: string;
   pending: boolean;
   error: string | null;
   onEdit: () => void;
   onCancel: () => void;
-  onSubmit: (content: { name: string }) => void;
+  onSubmit: (content: {
+    name: string;
+    durationMinutes: number | null;
+    status: ChapterStatus | null;
+  }) => void;
 }) {
-  const form = useSchemaForm(chapterContentSchema, ['name'], (content) => onSubmit(content));
+  const form = useSchemaForm(
+    chapterContentFormSchema,
+    ['name', 'durationMinutes', 'status'],
+    (content) => onSubmit(content),
+  );
 
   return (
-    <form onSubmit={form.onSubmit} onChange={onEdit} noValidate className="grid max-w-md gap-3">
-      <div className="grid gap-1.5">
-        <Label htmlFor={form.idOf('name')}>Nombre</Label>
-        <Input
-          {...form.field('name')}
-          defaultValue={initialName}
-          maxLength={200}
-          autoComplete="off"
-          autoFocus
-        />
-        <FieldError {...form.errorProps('name')} />
+    <form onSubmit={form.onSubmit} onChange={onEdit} noValidate className="grid max-w-3xl gap-3">
+      <div className="grid items-start gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_13rem]">
+        <div className="grid gap-1.5">
+          <Label htmlFor={form.idOf('name')}>Nombre</Label>
+          <Input
+            {...form.field('name')}
+            defaultValue={initialName}
+            maxLength={200}
+            autoComplete="off"
+            autoFocus
+          />
+          <FieldError {...form.errorProps('name')} />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor={form.idOf('durationMinutes')}>Minutos</Label>
+          <Input
+            {...form.field('durationMinutes')}
+            type="number"
+            min="1"
+            step="1"
+            defaultValue={initialMinutes ?? ''}
+          />
+          <FieldError {...form.errorProps('durationMinutes')} />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor={form.idOf('status')}>Estado</Label>
+          <Select {...form.field('status')} defaultValue={initialStatus ?? ''}>
+            <option value="">Automático</option>
+            {CHAPTER_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {ELEMENT_STATUS_LABELS[status]}
+              </option>
+            ))}
+          </Select>
+          <FieldError {...form.errorProps('status')} />
+        </div>
       </div>
+      <p className="text-xs text-muted-foreground">
+        Minutos en blanco suma los de lo que contiene. Estado automático sigue el avance de sus
+        actividades; Terminado las cuenta como hechas y Cancelado las deja fuera del avance y de los
+        minutos, sin modificarlas.
+      </p>
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}

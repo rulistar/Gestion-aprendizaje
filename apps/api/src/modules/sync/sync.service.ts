@@ -1,9 +1,17 @@
 import { createHash } from 'node:crypto';
-import { phaseMoves, phaseName, projectBody, taskBody, type SyncStatus } from '@aprendizaje/shared';
+import {
+  effectiveStatusById,
+  phaseMoves,
+  phaseName,
+  projectBody,
+  taskBody,
+  type SyncStatus,
+} from '@aprendizaje/shared';
 import type { SyncTarget } from '../../generated/prisma/client.js';
 import type { Db } from '../../db/client.js';
 import { notDeleted } from '../../db/audit.js';
 import { toIsoDate } from '../../db/dates.js';
+import { chapterStatusOf } from '../elements/elements.service.js';
 import { isNotFound, ProyectosError, type ProyectosClient } from './proyectos-client.js';
 
 /** Tras 24 h fallando, el envío se marca fallido y espera a que lo reintenten (ADR-0004 §2) */
@@ -134,6 +142,7 @@ export async function syncElement(
       name: true,
       durationMinutes: true,
       activityStatus: true,
+      status: true,
       estimatedStart: true,
       estimatedEnd: true,
     },
@@ -217,13 +226,23 @@ export async function syncElement(
     }
   }
 
-  // 5. Actividades como tareas, en la fase de su padre
+  // 5. Actividades como tareas, en la fase de su padre. Con el estado con que cuentan (HU-20): un
+  // capítulo Terminado o Cancelado a mano lleva a sus tareas a Hecha o Cancelada, sin tocarlas aquí.
+  const effective = effectiveStatusById(
+    nodes.map((n) => ({
+      id: n.id,
+      parentId: n.parentId,
+      kind: n.kind,
+      chapterStatus: chapterStatusOf(n),
+      activityStatus: n.activityStatus,
+    })),
+  );
   for (const node of nodes) {
     if (node.kind !== 'ACTIVITY') continue;
     const body = taskBody(
       {
         name: node.name,
-        status: node.activityStatus!,
+        status: effective.get(node.id) ?? node.activityStatus!,
         durationMinutes: node.durationMinutes,
         estimatedStart: toIsoDate(node.estimatedStart),
         estimatedEnd: toIsoDate(node.estimatedEnd),

@@ -134,7 +134,7 @@ describe('exportar', () => {
       status: 'IN_PROGRESS',
     });
     expect(backup.elements[0]!.nodes).toMatchObject([
-      { kind: 'CHAPTER', depth: 1, name: 'Intro' },
+      { kind: 'CHAPTER', depth: 1, name: 'Intro', status: null, durationMinutes: null },
       { kind: 'ACTIVITY', depth: 2, name: 'Hola', durationMinutes: 10 },
     ]);
   });

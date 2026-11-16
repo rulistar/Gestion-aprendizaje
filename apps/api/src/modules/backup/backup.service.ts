@@ -17,6 +17,7 @@ import type { Prisma } from '../../generated/prisma/client.js';
 import type { Db } from '../../db/client.js';
 import { auditCreate, notDeleted } from '../../db/audit.js';
 import { fromIsoDate, toIsoDate } from '../../db/dates.js';
+import { chapterStatusOf } from '../elements/elements.service.js';
 
 type Decimal = { toNumber(): number } | null;
 
@@ -108,7 +109,15 @@ export async function buildBackup(db: Db, workspaceId: string): Promise<Backup> 
 
   type NodeRow = (typeof nodes)[number];
   const toNode = (node: NodeRow): BackupNode => {
-    if (node.kind === 'CHAPTER') return { kind: 'CHAPTER', depth: node.level, name: node.name };
+    if (node.kind === 'CHAPTER') {
+      return {
+        kind: 'CHAPTER',
+        depth: node.level,
+        name: node.name,
+        status: chapterStatusOf(node),
+        durationMinutes: node.durationMinutes,
+      };
+    }
     if (node.kind === 'COURSE') return { kind: 'COURSE', depth: node.level, ...ficha(node) };
     return {
       kind: 'ACTIVITY',
@@ -310,7 +319,13 @@ export async function importBackup(
             ...auditCreate(actorId),
           };
           if (node.kind === 'CHAPTER') {
-            nodeRows.push({ ...base, kind: 'CHAPTER', name: node.name });
+            nodeRows.push({
+              ...base,
+              kind: 'CHAPTER',
+              name: node.name,
+              status: node.status,
+              durationMinutes: node.durationMinutes,
+            });
           } else if (node.kind === 'COURSE') {
             nodeRows.push({ ...base, kind: 'COURSE', ...fichaColumns(node) });
           } else {

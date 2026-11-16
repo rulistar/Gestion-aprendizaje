@@ -27,7 +27,7 @@ Espacio de trabajo
 | Nombre | Obligatorio |
 | Plataforma, Patrocinador, Categoría, Nivel | De sus catálogos (opcionales) |
 | Duración en semanas, Días por semana, Minutos por día | Opcionales; días por semana de 1 a 7 (por omisión 5); minutos por día hasta 1440. Desde HU-18 todo se mide en **minutos** (los campos conservan sus nombres internos `hoursPerDay`, etc.) |
-| Minutos totales | Si se capturan a mano, **manda lo capturado** (se guarda aparte para saber de dónde viene). Si no, la **suma de la estructura** (capítulos, cursos y actividades; las canceladas no cuentan; HU-18). Si tampoco hay, **calculados** = semanas × días por semana × minutos por día |
+| Minutos totales | Si la **suma de la estructura** (capítulos, cursos y actividades; lo cancelado no cuenta; HU-18, HU-20) es mayor que 0, esa suma es el total. Si no suma nada, **manda lo capturado** a mano (se guarda aparte para saber de dónde viene). Si tampoco hay, **calculados** = semanas × días por semana × minutos por día |
 | Inicio y fin estimados | Fechas `date` (`AAAA-MM-DD`), opcionales; el fin no puede ser anterior al inicio |
 | Inicio y fin reales | Se llenan solos al pasar a En curso y a Terminado; **se pueden corregir** |
 | Estado | No iniciado, En curso, Pausado, Cancelado, Terminado (los de Gestor de Proyectos) |

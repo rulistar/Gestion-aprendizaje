@@ -2,7 +2,7 @@ import type { Progress } from '@aprendizaje/shared';
 
 /** Barra de avance (ADR-0002 §4), con las actividades Hechas de las que cuentan */
 export function ProgressBar({ progress, label }: { progress: Progress; label: string }) {
-  if (progress.total === 0) {
+  if (progress.total === 0 && progress.percent === 0) {
     return <span className="text-xs text-muted-foreground">Sin actividades</span>;
   }
   return (
@@ -18,7 +18,8 @@ export function ProgressBar({ progress, label }: { progress: Progress; label: st
         <span className="block h-full bg-primary" style={{ width: `${progress.percent}%` }} />
       </span>
       <span className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
-        {progress.done}/{progress.total} · {progress.percent} %
+        {progress.total > 0 && `${progress.done}/${progress.total} · `}
+        {progress.percent} %
       </span>
     </span>
   );
