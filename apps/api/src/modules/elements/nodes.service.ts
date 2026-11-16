@@ -20,6 +20,7 @@ import {
   fichaData,
   InvalidActualDatesError,
   InvalidReferenceError,
+  chapterStatusOf,
   minutesNodeOf,
   toElement,
 } from './elements.service.js';
@@ -98,7 +99,7 @@ interface NodeRow {
   updatedAt: Date;
 }
 
-/** `minutes`: lo que suma ese nodo con lo que contiene (HU-18); solo se muestra en un Curso */
+/** `minutes`: lo que suma ese nodo con lo que contiene (HU-18); se muestra en un Curso y en un capítulo */
 function toNode(row: NodeRow, minutes: number | null = null): ElementNode {
   const base = {
     id: row.id,
@@ -109,7 +110,15 @@ function toNode(row: NodeRow, minutes: number | null = null): ElementNode {
     name: row.name,
     updatedAt: row.updatedAt.toISOString(),
   };
-  if (row.kind === 'CHAPTER') return { ...base, kind: 'CHAPTER' };
+  if (row.kind === 'CHAPTER') {
+    return {
+      ...base,
+      kind: 'CHAPTER',
+      status: chapterStatusOf(row),
+      durationMinutes: row.durationMinutes,
+      totalMinutes: minutes,
+    };
+  }
   if (row.kind === 'COURSE') {
     return {
       ...base,
@@ -227,7 +236,11 @@ export async function createNode(
 
     let content;
     if (input.kind === 'CHAPTER') {
-      content = { name: input.content.name };
+      content = {
+        name: input.content.name,
+        durationMinutes: input.content.durationMinutes,
+        status: input.content.status,
+      };
     } else if (input.kind === 'COURSE') {
       await assertReferences(tx, workspaceId, input.content, null);
       content = fichaData(input.content, null, today);
@@ -284,7 +297,11 @@ export async function updateNode(
 
     let content;
     if (input.kind === 'CHAPTER') {
-      content = { name: input.content.name };
+      content = {
+        name: input.content.name,
+        durationMinutes: input.content.durationMinutes,
+        status: input.content.status,
+      };
     } else if (input.kind === 'COURSE') {
       await assertReferences(
         tx,

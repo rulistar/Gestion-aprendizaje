@@ -221,8 +221,9 @@ export const elementListSchema = z.array(elementListItemSchema);
 export const elementTodayQuerySchema = z.object({ today: isoDate.optional() });
 
 /**
- * Minutos totales (HU-18): manda lo capturado; si no, la suma de la estructura (capítulos, cursos y
- * actividades, ver element-minutes); si tampoco hay, semanas × días por semana × minutos por día.
+ * Minutos totales (HU-18, HU-20): si la estructura (capítulos, cursos y actividades, ver
+ * element-minutes) suma más de 0, esa suma es el total. Si no suma nada, manda lo capturado a mano;
+ * y si tampoco hay, semanas × días por semana × minutos por día.
  */
 export function computeTotalHours({
   durationWeeks,
@@ -234,8 +235,8 @@ export function computeTotalHours({
   /** Lo que suma la estructura del elemento o curso; null si no tiene minutos */
   structureMinutes?: number | null;
 }): number | null {
+  if (structureMinutes !== null && structureMinutes > 0) return structureMinutes;
   if (manualTotalHours !== null) return manualTotalHours;
-  if (structureMinutes !== null) return structureMinutes;
   if (durationWeeks === null || hoursPerDay === null) return null;
   return Math.round(durationWeeks * daysPerWeek * hoursPerDay * 100) / 100;
 }

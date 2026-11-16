@@ -44,7 +44,7 @@ const backup: Backup = {
     {
       ...ficha({ notes: 'línea 1\nlínea 2, "con comillas"' }),
       nodes: [
-        { kind: 'CHAPTER', depth: 1, name: 'Introducción' },
+        { kind: 'CHAPTER', depth: 1, name: 'Introducción', status: null, durationMinutes: null },
         {
           kind: 'ACTIVITY',
           depth: 2,
@@ -58,7 +58,7 @@ const backup: Backup = {
           actualEnd: '2026-01-06',
         },
         { kind: 'COURSE', depth: 1, ...ficha({ name: 'Avanzado', status: 'NOT_STARTED' }) },
-        { kind: 'CHAPTER', depth: 2, name: 'Concurrencia' },
+        { kind: 'CHAPTER', depth: 2, name: 'Concurrencia', status: null, durationMinutes: null },
         {
           kind: 'ACTIVITY',
           depth: 3,
@@ -204,7 +204,13 @@ describe('las reglas del árbol', () => {
         actualStart: null,
         actualEnd: null,
       },
-      { kind: 'CHAPTER', depth: 2, name: 'Dentro de una actividad' },
+      {
+        kind: 'CHAPTER',
+        depth: 2,
+        name: 'Dentro de una actividad',
+        status: null,
+        durationMinutes: null,
+      },
     ];
     expect(readBackupText(JSON.stringify(broken)).ok).toBe(false);
   });
@@ -220,6 +226,45 @@ describe('el CSV para Excel', () => {
 
   it('exporta y vuelve a importar sin perder nada', () => {
     expect(csvToBackup(backupToCsv(backup))).toEqual({ ok: true, backup });
+  });
+
+  it('el estado a mano de un capítulo viaja en el CSV y en el JSON (HU-20)', () => {
+    const withStatus: Backup = {
+      ...backup,
+      elements: [
+        {
+          ...ficha({ name: 'Libro' }),
+          nodes: [
+            { kind: 'CHAPTER', depth: 1, name: 'Terminado', status: 'DONE', durationMinutes: null },
+            { kind: 'CHAPTER', depth: 1, name: 'Automático', status: null, durationMinutes: null },
+          ],
+        },
+      ],
+    };
+
+    const fromCsv = csvToBackup(backupToCsv(withStatus));
+    expect(fromCsv.ok).toBe(true);
+    if (!fromCsv.ok) return;
+    expect(
+      fromCsv.backup.elements[0]!.nodes.map((node) => node.kind === 'CHAPTER' && node.status),
+    ).toEqual(['DONE', null]);
+    expect(backupSchema.parse(JSON.parse(JSON.stringify(withStatus)))).toEqual(withStatus);
+  });
+
+  it('un capítulo en el CSV no acepta No iniciado ni En curso (HU-20)', () => {
+    const csv = backupToCsv({
+      ...backup,
+      elements: [
+        {
+          ...ficha({ name: 'Libro' }),
+          nodes: [
+            { kind: 'CHAPTER', depth: 1, name: 'Intro', status: 'DONE', durationMinutes: null },
+          ],
+        },
+      ],
+    }).replace('Terminado', 'En curso');
+
+    expect(csvToBackup(csv).ok).toBe(false);
   });
 
   it('Minutos totales es informativa: lo calculado no se vuelve minutos capturados', () => {
@@ -253,7 +298,7 @@ describe('el CSV para Excel', () => {
         {
           ...ficha({ name: 'Libro', durationWeeks: null, hoursPerDay: null }),
           nodes: [
-            { kind: 'CHAPTER', depth: 1, name: 'Intro' },
+            { kind: 'CHAPTER', depth: 1, name: 'Intro', status: null, durationMinutes: null },
             {
               kind: 'ACTIVITY',
               depth: 2,

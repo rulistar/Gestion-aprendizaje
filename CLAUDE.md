@@ -25,7 +25,7 @@ Detalle en [docs/backlog.md](docs/backlog.md) y [ADR-0002](docs/adr/ADR-0002-ele
 - Acceso como en Gestor de Proyectos: **registro solo por invitación**, espacios y **roles** (Admin, Miembro, Lector), sin la matriz por persona.
 - **Tipos de elemento** (Curso, Lectura, Otro…) con **etiquetas propias** por campo.
 - Plataforma, patrocinador, categoría, nivel y tipo de actividad: **catálogos editables**.
-- Todo se mide en minutos (HU-18). Minutos totales: lo capturado a mano; si no hay, la suma de la estructura (sin actividades canceladas); si no, semanas × días por semana × minutos por día. Los campos conservan sus nombres `hoursPerDay`, `manualTotalHours`, `actualHours` y `totalHours`.
+- Todo se mide en minutos (HU-18). Minutos totales: la suma de la estructura si es mayor que 0 (sin lo cancelado; HU-20); si no, lo capturado a mano; si no, semanas × días por semana × minutos por día. Los campos conservan sus nombres `hoursPerDay`, `manualTotalHours`, `actualHours` y `totalHours`.
 - Fechas reales automáticas al cambiar el estado, y editables.
 - Árbol de hasta 3 niveles: Capítulo, Curso (misma ficha Zod que el elemento) o Actividad; en el nivel 3, solo actividades.
 

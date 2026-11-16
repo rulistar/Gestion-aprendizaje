@@ -3,7 +3,9 @@ import {
   computeTotalHours,
   DEFAULT_DAYS_PER_WEEK,
   rollupMinutes,
+  effectiveStatusesOf,
   summarizeActivities,
+  type ProgressRow,
   type ActivityStatus,
   type CatalogKind,
   type Element,
@@ -132,6 +134,17 @@ export function toElement(
   };
 }
 
+/** El estado a mano de un capítulo (HU-20); NOT_STARTED/IN_PROGRESS no existen para un capítulo */
+export function chapterStatusOf(row: {
+  kind: NodeKind;
+  status: ElementStatus | null;
+}): ProgressRow['chapterStatus'] {
+  if (row.kind !== 'CHAPTER') return null;
+  return row.status === 'PAUSED' || row.status === 'CANCELLED' || row.status === 'DONE'
+    ? row.status
+    : null;
+}
+
 /** Lo que un nodo de la base aporta a la suma de minutos (HU-18) */
 export function minutesNodeOf(row: {
   id: string;
@@ -139,6 +152,7 @@ export function minutesNodeOf(row: {
   kind: NodeKind;
   durationMinutes: number | null;
   activityStatus: ActivityStatus | null;
+  status: ElementStatus | null;
   manualTotalHours: { toNumber(): number } | null;
   durationWeeks: { toNumber(): number } | null;
   daysPerWeek: number | null;
@@ -148,7 +162,7 @@ export function minutesNodeOf(row: {
     id: row.id,
     parentId: row.parentId,
     captured:
-      row.kind === 'ACTIVITY'
+      row.kind === 'ACTIVITY' || row.kind === 'CHAPTER'
         ? row.durationMinutes
         : row.kind === 'COURSE'
           ? toNumber(row.manualTotalHours)
@@ -162,7 +176,8 @@ export function minutesNodeOf(row: {
             manualTotalHours: null,
           })
         : null,
-    cancelled: row.activityStatus === 'CANCELLED',
+    cancelled:
+      row.activityStatus === 'CANCELLED' || (row.kind === 'CHAPTER' && row.status === 'CANCELLED'),
   };
 }
 
@@ -173,6 +188,7 @@ export const minutesNodeSelect = {
   kind: true,
   durationMinutes: true,
   activityStatus: true,
+  status: true,
   manualTotalHours: true,
   durationWeeks: true,
   daysPerWeek: true,
@@ -249,19 +265,35 @@ export async function listElements(db: Db, workspaceId: string): Promise<Element
     select: elementSelect,
     orderBy: { createdAt: 'desc' },
   });
-  const activities = await db.elementNode.findMany({
-    where: { workspaceId, kind: 'ACTIVITY', ...notDeleted },
-    select: { elementId: true, activityStatus: true },
+  // Todos los nodos, no solo las actividades: el estado a mano de un capítulo cambia el avance (HU-20)
+  const nodes = await db.elementNode.findMany({
+    where: { workspaceId, ...notDeleted },
+    select: {
+      id: true,
+      elementId: true,
+      parentId: true,
+      kind: true,
+      status: true,
+      activityStatus: true,
+    },
   });
-  const statuses = new Map<string, ActivityStatus[]>();
-  for (const { elementId, activityStatus } of activities) {
-    if (activityStatus)
-      statuses.set(elementId, [...(statuses.get(elementId) ?? []), activityStatus]);
+  const rowsByElement = new Map<string, ProgressRow[]>();
+  for (const node of nodes) {
+    rowsByElement.set(node.elementId, [
+      ...(rowsByElement.get(node.elementId) ?? []),
+      {
+        id: node.id,
+        parentId: node.parentId,
+        kind: node.kind,
+        chapterStatus: chapterStatusOf(node),
+        activityStatus: node.activityStatus,
+      },
+    ]);
   }
   const minutes = await structureMinutes(db, workspaceId);
   return rows.map((row) => ({
     ...toElement(row, minutes.get(row.id) ?? null),
-    progress: summarizeActivities(statuses.get(row.id) ?? []),
+    progress: summarizeActivities(effectiveStatusesOf(rowsByElement.get(row.id) ?? [])),
   }));
 }
 
