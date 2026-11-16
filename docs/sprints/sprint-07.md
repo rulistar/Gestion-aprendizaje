@@ -1,6 +1,6 @@
 # Sprint 7 — editoriales, lecturas terminadas y minutos
 
-- **Fechas:** 2026-11-14 → 2026-11-27
+- **Fechas:** 2026-11-14 → 2026-11-27 (cerrado el 2026-11-15)
 - **Objetivo:** que una lectura se capture y se cierre como se piensa (editoriales aparte de las plataformas, casilla de terminada) y que la duración se maneje en minutos y se sume desde la estructura.
 - **Capacidad:** 14 puntos (propuesta según lo pedido por el PO el 2026-11-13).
 
@@ -11,7 +11,7 @@
 | HU-19 | Opciones de la estructura (subcapítulo, curso, actividad) en el renglón del capítulo | 1 | Hecha (PR #39) |
 | HU-17 | Casilla "Terminada" en las lecturas | 2 | Hecha (PR #40) |
 | HU-16 | Marca Editorial / Plataforma en cada valor del catálogo | 3 | Hecha (PR #41) |
-| HU-18 | Duración en minutos y suma hacia el elemento | 8 | En revisión (rama `feat/hu-18-minutos`) |
+| HU-18 | Duración en minutos y suma hacia el elemento | 8 | Hecha (PR #42) |
 
 ## Notas
 
@@ -25,3 +25,22 @@
   - **Gestor de Proyectos:** hoy la sincronización no envía horas ([ADR-0004](../adr/ADR-0004-integracion-gestor-proyectos.md): "horas por día" no se envía), así que no cambia nada. Cuando INT-04 decida qué duración mandar, habrá que convertir (÷ 60) si Proyectos la espera en horas.
 - **HU-19 (PO, 2026-11-14):** los botones para agregar (Subcapítulo, Curso, Actividad) ya salían juntos, pero debajo de lo que contiene cada nodo. Ahora salen en el mismo renglón que el nombre del capítulo o curso al que se agregan; el formulario de la clase elegida se abre justo debajo. En la raíz del elemento, que no tiene renglón propio, quedan donde estaban. Solo cambia la web.
 - **Fuera de este sprint:** el respaldo del prototipo "Gestor de cursos" (falta un archivo real) e INT-04 (espera TEC-08 y HU-18 de la v2 de Gestor de Proyectos; no es esta HU-18).
+
+## Cierre (2026-11-15)
+
+- **Entregado:** 4 de 4 elementos, 14 puntos (PR #39, #40, #41 y #42). Objetivo cumplido: una lectura se captura y se cierra como se piensa (editoriales aparte de las plataformas, casilla "Terminada"), la estructura se arma con menos clics y la duración se maneja en minutos y se suma desde la estructura.
+- **Pruebas:** 294 en la API, todas en verde (4 más que en el Sprint 6), más las nuevas de `shared` (suma de minutos, conversión de respaldos, regla de editorial). Los cuatro chequeos de GitHub en verde en cada PR.
+- **Migraciones:** dos, escritas a mano: `hu16_editorial_plataforma` (columna nueva) y `hu18_minutos` (ensancha columnas y multiplica × 60 lo ya guardado). Sin dependencias nuevas.
+
+### Lo que aprendimos
+
+- **Una migración de una rama sin fusionar rompe a la siguiente.** La base de pruebas ya traía la migración de HU-16 y la rama de HU-18 salió de `main` sin ella: Prisma pidió un reset ("drift"). Se resolvió fusionando HU-16 y poniendo HU-18 encima con `rebase`. Regla: la historia con migración se fusiona antes de empezar la siguiente que también migra.
+- **Cambiar unidades no obliga a cambiar nombres.** Los campos `hoursPerDay`, `manualTotalHours`, `actualHours` y `totalHours` están guardados en los tipos de elemento y en los respaldos. Se conservaron y cambiaron las unidades, las etiquetas y los comentarios; renombrarlos queda como cambio aparte.
+- **Los archivos viejos hay que seguir leyéndolos.** El respaldo pasó a la versión 2 (minutos) y los JSON de la versión 1 y los CSV con columnas "Horas…" se convierten al importar, con pruebas.
+- **Las reglas por nombre de tipo son frágiles.** La casilla "Terminada" y el filtro de editoriales se reconocen porque el tipo se llama "Lectura". Si se renombra, dejan de verse. Una marca propia en el tipo lo evitaría.
+
+### Pendiente
+
+- **Respaldo del prototipo "Gestor de cursos":** con un archivo real se agrega como tercer formato de `readBackupText` (`shared`), sin tocar la API.
+- **INT-04:** espera TEC-08 y HU-18 en la v2 de Gestor de Proyectos. Cuando decida qué duración manda, hay que convertir minutos a horas (÷ 60) si Proyectos la espera en horas.
+- **Próximo sprint:** [Sprint 8](sprint-08.md), propuesto: estado de capítulos y libros, y "Leer de nuevo".
