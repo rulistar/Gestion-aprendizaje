@@ -71,7 +71,7 @@ function summary(node: NodeTreeItem, catalogs: CatalogItem[]) {
     return [
       ELEMENT_STATUS_LABELS[status],
       `Prioridad ${ELEMENT_PRIORITY_LABELS[priority].toLowerCase()}`,
-      totalHours !== null && `${totalHours} h`,
+      totalHours !== null && `${totalHours} min`,
     ];
   }
   if (node.kind === 'ACTIVITY') {

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { catalogKindSchema } from './catalogs.js';
+import { rollupByDepth } from './element-minutes.js';
 import {
   ACTIVITY_STATUS_LABELS,
   activityContentSchema,
@@ -23,7 +24,9 @@ import {
  * nodo con su profundidad (1 a 3), igual que las filas del CSV.
  */
 export const BACKUP_FORMAT = 'gestor-aprendizaje';
-export const BACKUP_VERSION = 1;
+/** Versión 2 (HU-18): todo en minutos. La 1 guardaba horas; se sigue leyendo y se convierte */
+export const BACKUP_VERSION = 2;
+export const BACKUP_LEGACY_VERSION = 1;
 /** Topes para que un archivo enorme no deje ocupado al servidor */
 export const MAX_BACKUP_ELEMENTS = 2000;
 export const MAX_BACKUP_NODES = 20000;
@@ -206,7 +209,7 @@ export function describeBackupIssues(error: z.ZodError): string[] {
 
 // ───────────────────────── CSV (para Excel) ─────────────────────────
 
-/** Las columnas del CSV, en orden. "Horas totales" es informativa: al importar se ignora */
+/** Las columnas del CSV, en orden. "Minutos totales" es informativa: al importar se ignora */
 const CSV_COLUMNS = [
   'Profundidad',
   'Clase',
@@ -221,10 +224,10 @@ const CSV_COLUMNS = [
   'Páginas',
   'Semanas',
   'Días por semana',
-  'Horas por día',
-  'Horas capturadas',
-  'Horas totales',
-  'Horas reales',
+  'Minutos por día',
+  'Minutos capturados',
+  'Minutos totales',
+  'Minutos reales',
   'Inicio estimado',
   'Fin estimado',
   'Inicio real',
@@ -250,9 +253,9 @@ const FIELD_COLUMN: Record<string, CsvColumn> = {
   pages: 'Páginas',
   durationWeeks: 'Semanas',
   daysPerWeek: 'Días por semana',
-  hoursPerDay: 'Horas por día',
-  manualTotalHours: 'Horas capturadas',
-  actualHours: 'Horas reales',
+  hoursPerDay: 'Minutos por día',
+  manualTotalHours: 'Minutos capturados',
+  actualHours: 'Minutos reales',
   estimatedStart: 'Inicio estimado',
   estimatedEnd: 'Fin estimado',
   actualStart: 'Inicio real',
@@ -283,13 +286,34 @@ function csvCell(value: string): string {
 const cellText = (value: string | null) => (value === null ? '' : guard(value));
 const cellNumber = (value: number | null) => (value === null ? '' : String(value));
 
+/** Lo que un nodo del respaldo aporta a la suma de minutos (HU-18) */
+function minutesOf(node: BackupNode) {
+  if (node.kind === 'ACTIVITY') {
+    return {
+      depth: node.depth,
+      captured: node.durationMinutes,
+      calculated: null,
+      cancelled: node.status === 'CANCELLED',
+    };
+  }
+  if (node.kind === 'COURSE') {
+    return {
+      depth: node.depth,
+      captured: node.manualTotalHours,
+      calculated: computeTotalHours({ ...node, manualTotalHours: null }),
+      cancelled: false,
+    };
+  }
+  return { depth: node.depth, captured: null, calculated: null, cancelled: false };
+}
+
 /** El respaldo como CSV con BOM (para que Excel lea bien los acentos): una fila por elemento y nodo */
 export function backupToCsv(backup: Backup): string {
   const rows: string[][] = [[...CSV_COLUMNS]];
   const row = (cells: Partial<Record<CsvColumn, string>>) =>
     rows.push(CSV_COLUMNS.map((column) => cells[column] ?? ''));
 
-  const fichaCells = (ficha: BackupFicha) => ({
+  const fichaCells = (ficha: BackupFicha, total: number | null) => ({
     Nombre: cellText(ficha.name),
     Tipo: cellText(ficha.type),
     Plataforma: cellText(ficha.platform),
@@ -301,10 +325,10 @@ export function backupToCsv(backup: Backup): string {
     Páginas: cellNumber(ficha.pages),
     Semanas: cellNumber(ficha.durationWeeks),
     'Días por semana': String(ficha.daysPerWeek),
-    'Horas por día': cellNumber(ficha.hoursPerDay),
-    'Horas capturadas': cellNumber(ficha.manualTotalHours),
-    'Horas totales': cellNumber(computeTotalHours(ficha)),
-    'Horas reales': cellNumber(ficha.actualHours),
+    'Minutos por día': cellNumber(ficha.hoursPerDay),
+    'Minutos capturados': cellNumber(ficha.manualTotalHours),
+    'Minutos totales': cellNumber(total),
+    'Minutos reales': cellNumber(ficha.actualHours),
     'Inicio estimado': ficha.estimatedStart ?? '',
     'Fin estimado': ficha.estimatedEnd ?? '',
     'Inicio real': ficha.actualStart ?? '',
@@ -315,11 +339,22 @@ export function backupToCsv(backup: Backup): string {
   });
 
   for (const element of backup.elements) {
-    row({ Profundidad: '0', Clase: 'Elemento', ...fichaCells(element) });
-    for (const node of element.nodes) {
+    // Los minutos totales (informativos) salen de la misma suma que ve la pantalla (HU-18)
+    const { byIndex, roots } = rollupByDepth(element.nodes.map(minutesOf));
+    row({
+      Profundidad: '0',
+      Clase: 'Elemento',
+      ...fichaCells(element, computeTotalHours({ ...element, structureMinutes: roots })),
+    });
+    for (const [at, node] of element.nodes.entries()) {
       const base = { Profundidad: String(node.depth), Clase: nodeKindLabel(node.kind, node.depth) };
-      if (node.kind === 'CHAPTER') row({ ...base, Nombre: cellText(node.name) });
-      else if (node.kind === 'COURSE') row({ ...base, ...fichaCells(node) });
+      if (node.kind === 'CHAPTER') {
+        row({
+          ...base,
+          Nombre: cellText(node.name),
+          'Minutos totales': cellNumber(byIndex[at] ?? null),
+        });
+      } else if (node.kind === 'COURSE') row({ ...base, ...fichaCells(node, byIndex[at] ?? null) });
       else {
         row({
           ...base,
@@ -404,6 +439,14 @@ const CLASS_KINDS: Record<string, NodeKind> = {
   actividad: 'ACTIVITY',
 };
 
+/** Los títulos de la versión 1 del CSV (en horas): se siguen leyendo y se convierten a minutos */
+const LEGACY_HOUR_COLUMNS: Record<string, CsvColumn> = {
+  'horas por dia': 'Minutos por día',
+  'horas capturadas': 'Minutos capturados',
+  'horas totales': 'Minutos totales',
+  'horas reales': 'Minutos reales',
+};
+
 export type CsvReadResult = { ok: true; backup: Backup } | { ok: false; errors: string[] };
 
 /** Un CSV de este formato (el que exporta backupToCsv, editado o armado a mano) a un respaldo */
@@ -413,9 +456,16 @@ export function csvToBackup(text: string): CsvReadResult {
   if (!header) return { ok: false, errors: ['El archivo está vacío'] };
 
   const index = new Map<CsvColumn, number>();
+  /** Columnas que vienen en horas (archivo de la versión 1) */
+  const inHours = new Set<CsvColumn>();
   for (const [position, title] of header.entries()) {
-    const column = CSV_COLUMNS.find((candidate) => fold(candidate) === fold(title));
-    if (column && !index.has(column)) index.set(column, position);
+    const current = CSV_COLUMNS.find((candidate) => fold(candidate) === fold(title));
+    const legacy = LEGACY_HOUR_COLUMNS[fold(title)];
+    const column = current ?? legacy;
+    if (column && !index.has(column)) {
+      index.set(column, position);
+      if (!current && legacy) inHours.add(legacy);
+    }
   }
   const missing = (['Profundidad', 'Clase', 'Nombre'] as const).filter((c) => !index.has(c));
   if (missing.length > 0) {
@@ -445,6 +495,11 @@ export function csvToBackup(text: string): CsvReadResult {
     const number = (value: string) =>
       value === '' ? null : Number(delimiter === ';' ? value.replace(',', '.') : value);
     const day = (value: string) => (value === '' ? null : toIsoDay(value));
+    /** Minutos; si la columna venía en horas, se convierte */
+    const minutes = (column: CsvColumn) => {
+      const value = number(read(column));
+      return value !== null && inHours.has(column) ? Math.round(value * 6000) / 100 : value;
+    };
     const fail = (message: string) => errors.push(`Fila ${line}: ${message}`);
 
     const depthText = read('Profundidad');
@@ -503,9 +558,9 @@ export function csvToBackup(text: string): CsvReadResult {
       pages: number(read('Páginas')),
       durationWeeks: number(read('Semanas')),
       ...(days !== '' && { daysPerWeek: number(days) }),
-      hoursPerDay: number(read('Horas por día')),
-      manualTotalHours: number(read('Horas capturadas')),
-      actualHours: number(read('Horas reales')),
+      hoursPerDay: minutes('Minutos por día'),
+      manualTotalHours: minutes('Minutos capturados'),
+      actualHours: minutes('Minutos reales'),
       ...dates,
       ...(statusCode && { status: statusCode }),
       ...(priorityCode && { priority: priorityCode }),
@@ -573,6 +628,42 @@ export function csvToBackup(text: string): CsvReadResult {
     : { ok: false, errors: describeBackupIssues(parsed.error) };
 }
 
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+
+/** Pasa a minutos los campos de horas de una ficha (elemento o curso) de la versión 1 */
+function hoursToMinutes(item: unknown): unknown {
+  const record = asRecord(item);
+  if (!record) return item;
+  const converted: Record<string, unknown> = { ...record };
+  for (const field of ['hoursPerDay', 'manualTotalHours', 'actualHours']) {
+    const value = converted[field];
+    if (typeof value === 'number') converted[field] = Math.round(value * 6000) / 100;
+  }
+  return converted;
+}
+
+/**
+ * Un respaldo JSON de la versión 1 (en horas) se convierte a la versión 2 (minutos) antes de
+ * validarlo, así los archivos viejos siguen sirviendo. Cualquier otra cosa se deja como está.
+ */
+export function upgradeLegacyBackup(data: unknown): unknown {
+  const backup = asRecord(data);
+  if (!backup || backup.version !== BACKUP_LEGACY_VERSION || !Array.isArray(backup.elements)) {
+    return data;
+  }
+  const elements = backup.elements.map((element: unknown) => {
+    const converted = hoursToMinutes(element);
+    const record = asRecord(converted);
+    return record && Array.isArray(record.nodes)
+      ? { ...record, nodes: record.nodes.map(hoursToMinutes) }
+      : converted;
+  });
+  return { ...backup, version: BACKUP_VERSION, elements };
+}
+
 /**
  * Lee el texto de un archivo de respaldo: si empieza con "{" es JSON; si no, se toma como CSV.
  * Devuelve el respaldo o los problemas, en palabras.
@@ -591,7 +682,7 @@ export function readBackupText(text: string): CsvReadResult {
   } catch {
     return { ok: false, errors: ['El archivo no es un JSON válido'] };
   }
-  const parsed = backupSchema.safeParse(data);
+  const parsed = backupSchema.safeParse(upgradeLegacyBackup(data));
   return parsed.success
     ? { ok: true, backup: parsed.data }
     : { ok: false, errors: describeBackupIssues(parsed.error) };

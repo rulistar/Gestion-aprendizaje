@@ -1,6 +1,8 @@
 import {
   applyStatusDates,
   computeTotalHours,
+  DEFAULT_DAYS_PER_WEEK,
+  rollupMinutes,
   summarizeActivities,
   type ActivityStatus,
   type CatalogKind,
@@ -9,6 +11,8 @@ import {
   type ElementListItem,
   type ElementPriority,
   type ElementStatus,
+  type MinutesNode,
+  type NodeKind,
 } from '@aprendizaje/shared';
 import type { Db, Tx } from '../../db/client.js';
 import { auditCreate, auditSoftDelete, auditUpdate, notDeleted } from '../../db/audit.js';
@@ -65,31 +69,38 @@ function toNumber(value: { toNumber(): number } | null): number | null {
   return value === null ? null : value.toNumber();
 }
 
-export function toElement(row: {
-  id: string;
-  typeId: string;
-  name: string;
-  platformId: string | null;
-  sponsorId: string | null;
-  categoryId: string | null;
-  levelId: string | null;
-  authorId: string | null;
-  genreId: string | null;
-  pages: number | null;
-  durationWeeks: { toNumber(): number } | null;
-  daysPerWeek: number;
-  hoursPerDay: { toNumber(): number } | null;
-  manualTotalHours: { toNumber(): number } | null;
-  actualHours: { toNumber(): number } | null;
-  estimatedStart: Date | null;
-  estimatedEnd: Date | null;
-  actualStart: Date | null;
-  actualEnd: Date | null;
-  status: ElementStatus;
-  priority: ElementPriority;
-  notes: string | null;
-  updatedAt: Date;
-}): Element {
+/**
+ * `structureMinutes`: lo que suma la estructura del elemento (o del curso), HU-18. Desde esa
+ * historia `hoursPerDay`, `manualTotalHours`, `actualHours` y `totalHours` están en minutos.
+ */
+export function toElement(
+  row: {
+    id: string;
+    typeId: string;
+    name: string;
+    platformId: string | null;
+    sponsorId: string | null;
+    categoryId: string | null;
+    levelId: string | null;
+    authorId: string | null;
+    genreId: string | null;
+    pages: number | null;
+    durationWeeks: { toNumber(): number } | null;
+    daysPerWeek: number;
+    hoursPerDay: { toNumber(): number } | null;
+    manualTotalHours: { toNumber(): number } | null;
+    actualHours: { toNumber(): number } | null;
+    estimatedStart: Date | null;
+    estimatedEnd: Date | null;
+    actualStart: Date | null;
+    actualEnd: Date | null;
+    status: ElementStatus;
+    priority: ElementPriority;
+    notes: string | null;
+    updatedAt: Date;
+  },
+  structureMinutes: number | null = null,
+): Element {
   const hours = {
     durationWeeks: toNumber(row.durationWeeks),
     daysPerWeek: row.daysPerWeek,
@@ -108,7 +119,7 @@ export function toElement(row: {
     genreId: row.genreId,
     pages: row.pages,
     ...hours,
-    totalHours: computeTotalHours(hours),
+    totalHours: computeTotalHours({ ...hours, structureMinutes }),
     actualHours: toNumber(row.actualHours),
     estimatedStart: toIsoDate(row.estimatedStart),
     estimatedEnd: toIsoDate(row.estimatedEnd),
@@ -119,6 +130,70 @@ export function toElement(row: {
     notes: row.notes,
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+/** Lo que un nodo de la base aporta a la suma de minutos (HU-18) */
+export function minutesNodeOf(row: {
+  id: string;
+  parentId: string | null;
+  kind: NodeKind;
+  durationMinutes: number | null;
+  activityStatus: ActivityStatus | null;
+  manualTotalHours: { toNumber(): number } | null;
+  durationWeeks: { toNumber(): number } | null;
+  daysPerWeek: number | null;
+  hoursPerDay: { toNumber(): number } | null;
+}): MinutesNode {
+  return {
+    id: row.id,
+    parentId: row.parentId,
+    captured:
+      row.kind === 'ACTIVITY'
+        ? row.durationMinutes
+        : row.kind === 'COURSE'
+          ? toNumber(row.manualTotalHours)
+          : null,
+    calculated:
+      row.kind === 'COURSE'
+        ? computeTotalHours({
+            durationWeeks: toNumber(row.durationWeeks),
+            daysPerWeek: row.daysPerWeek ?? DEFAULT_DAYS_PER_WEEK,
+            hoursPerDay: toNumber(row.hoursPerDay),
+            manualTotalHours: null,
+          })
+        : null,
+    cancelled: row.activityStatus === 'CANCELLED',
+  };
+}
+
+export const minutesNodeSelect = {
+  id: true,
+  elementId: true,
+  parentId: true,
+  kind: true,
+  durationMinutes: true,
+  activityStatus: true,
+  manualTotalHours: true,
+  durationWeeks: true,
+  daysPerWeek: true,
+  hoursPerDay: true,
+} as const;
+
+/** Los minutos que suma la estructura de cada elemento (o de uno solo), sin la papelera (HU-18) */
+async function structureMinutes(
+  db: Db | Tx,
+  workspaceId: string,
+  elementId?: string,
+): Promise<Map<string, number | null>> {
+  const rows = await db.elementNode.findMany({
+    where: { workspaceId, ...(elementId && { elementId }), ...notDeleted },
+    select: minutesNodeSelect,
+  });
+  const byElement = new Map<string, MinutesNode[]>();
+  for (const row of rows) {
+    byElement.set(row.elementId, [...(byElement.get(row.elementId) ?? []), minutesNodeOf(row)]);
+  }
+  return new Map([...byElement].map(([id, nodes]) => [id, rollupMinutes(nodes).roots] as const));
 }
 
 /**
@@ -183,8 +258,9 @@ export async function listElements(db: Db, workspaceId: string): Promise<Element
     if (activityStatus)
       statuses.set(elementId, [...(statuses.get(elementId) ?? []), activityStatus]);
   }
+  const minutes = await structureMinutes(db, workspaceId);
   return rows.map((row) => ({
-    ...toElement(row),
+    ...toElement(row, minutes.get(row.id) ?? null),
     progress: summarizeActivities(statuses.get(row.id) ?? []),
   }));
 }
@@ -198,7 +274,9 @@ export async function getElement(
     where: { id: elementId, workspaceId, ...notDeleted },
     select: elementSelect,
   });
-  return row && toElement(row);
+  if (!row) return null;
+  const minutes = await structureMinutes(db, workspaceId, elementId);
+  return toElement(row, minutes.get(elementId) ?? null);
 }
 
 export async function createElement(
@@ -270,6 +348,7 @@ export async function updateElement(
       select: elementSelect,
     });
     await markChanged(tx, elementId);
-    return toElement(row);
+    const minutes = await structureMinutes(tx, workspaceId, elementId);
+    return toElement(row, minutes.get(elementId) ?? null);
   });
 }

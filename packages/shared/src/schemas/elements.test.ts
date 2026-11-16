@@ -11,7 +11,7 @@ const TYPE_ID = '01a1b3c2-3eaa-7059-89a1-d001d4d0856a';
 describe('computeTotalHours', () => {
   const base = { durationWeeks: 4, daysPerWeek: 5, hoursPerDay: 2, manualTotalHours: null };
 
-  it('multiplica semanas, días por semana y horas por día', () => {
+  it('multiplica semanas, días por semana y minutos por día', () => {
     expect(computeTotalHours(base)).toBe(40);
   });
 
@@ -26,9 +26,15 @@ describe('computeTotalHours', () => {
     expect(computeTotalHours({ ...base, manualTotalHours: 0 })).toBe(0);
   });
 
+  it('sin captura, la suma de la estructura pesa más que el cálculo (HU-18)', () => {
+    expect(computeTotalHours({ ...base, structureMinutes: 75 })).toBe(75);
+    expect(computeTotalHours({ ...base, structureMinutes: null })).toBe(40);
+    expect(computeTotalHours({ ...base, manualTotalHours: 12, structureMinutes: 75 })).toBe(12);
+  });
+
   it.each([
     ['las semanas', { durationWeeks: null }],
-    ['las horas por día', { hoursPerDay: null }],
+    ['los minutos por día', { hoursPerDay: null }],
   ])('sin %s no hay cálculo', (_caso, change) => {
     expect(computeTotalHours({ ...base, ...change })).toBeNull();
   });
@@ -121,13 +127,13 @@ describe('elementFichaSchema', () => {
     ['días por semana en 8', { daysPerWeek: 8 }, 'daysPerWeek'],
     ['días por semana con decimales', { daysPerWeek: 2.5 }, 'daysPerWeek'],
     ['semanas en 0', { durationWeeks: 0 }, 'durationWeeks'],
-    ['más de 24 horas por día', { hoursPerDay: 25 }, 'hoursPerDay'],
-    ['horas negativas', { manualTotalHours: -1 }, 'manualTotalHours'],
+    ['más de 1440 minutos por día', { hoursPerDay: 1441 }, 'hoursPerDay'],
+    ['minutos negativos', { manualTotalHours: -1 }, 'manualTotalHours'],
     ['una fecha imposible', { estimatedStart: '2026-02-30' }, 'estimatedStart'],
     ['una prioridad que no existe', { priority: 'URGENTE' }, 'priority'],
     ['páginas en 0', { pages: 0 }, 'pages'],
     ['páginas con decimales', { pages: 10.5 }, 'pages'],
-    ['horas reales negativas', { actualHours: -2 }, 'actualHours'],
+    ['minutos reales negativos', { actualHours: -2 }, 'actualHours'],
     [
       'un fin estimado anterior al inicio',
       { estimatedStart: '2026-02-02', estimatedEnd: '2026-02-01' },

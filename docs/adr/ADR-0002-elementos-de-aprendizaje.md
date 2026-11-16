@@ -26,15 +26,15 @@ Espacio de trabajo
 | Tipo de elemento | Del catálogo de tipos; decide las etiquetas |
 | Nombre | Obligatorio |
 | Plataforma, Patrocinador, Categoría, Nivel | De sus catálogos (opcionales) |
-| Duración en semanas, Días por semana, Horas por día | Opcionales; días por semana de 1 a 7 (por omisión 5) |
-| Horas totales | **Calculadas** = semanas × días por semana × horas por día. Si se capturan a mano, **manda lo capturado** (se guarda aparte para saber de dónde viene) |
+| Duración en semanas, Días por semana, Minutos por día | Opcionales; días por semana de 1 a 7 (por omisión 5); minutos por día hasta 1440. Desde HU-18 todo se mide en **minutos** (los campos conservan sus nombres internos `hoursPerDay`, etc.) |
+| Minutos totales | Si se capturan a mano, **manda lo capturado** (se guarda aparte para saber de dónde viene). Si no, la **suma de la estructura** (capítulos, cursos y actividades; las canceladas no cuentan; HU-18). Si tampoco hay, **calculados** = semanas × días por semana × minutos por día |
 | Inicio y fin estimados | Fechas `date` (`AAAA-MM-DD`), opcionales; el fin no puede ser anterior al inicio |
 | Inicio y fin reales | Se llenan solos al pasar a En curso y a Terminado; **se pueden corregir** |
 | Estado | No iniciado, En curso, Pausado, Cancelado, Terminado (los de Gestor de Proyectos) |
 | Prioridad | Alta, Media (por omisión) o Baja, como la de los proyectos en Gestor de Proyectos (HU-10, PO 2026-11-08) |
 | Autor y Género | Catálogos propios del espacio, como los demás (HU-11, PO 2026-11-08) |
 | Número de páginas | Entero mayor que 0 (HU-11) |
-| Horas reales | Capturadas a mano, en todos los tipos, para compararlas con las estimadas (HU-11) |
+| Minutos reales | Capturados a mano, en todos los tipos, para compararlas con las estimadas (HU-11) |
 | Notas | Texto libre |
 
 **Actividad:** nombre, tipo de actividad (catálogo; por omisión video/lección, lectura, ejercicio, quiz, proyecto, examen), duración en minutos, estado (Pendiente, En curso, Pausada, Hecha, Cancelada, como las tareas de Gestor de Proyectos) y fechas estimadas y reales.
